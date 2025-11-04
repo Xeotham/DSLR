@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from numpy import sum, var
+from numpy import sum
 
 def total_count(df: DataFrame) -> int:
     """
