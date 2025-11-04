@@ -1,3 +1,5 @@
+#!./.venv/bin/python
+
 from pandas import DataFrame, read_csv
 from numpy import ndarray, array, vstack
 from sys import argv
