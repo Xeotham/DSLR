@@ -76,6 +76,10 @@ def min(df: DataFrame) -> float:
         float: Minimum value in the DataFrame.
     """
     df_nona = df[df.notna()]
+
+    if len(df_nona) < 1:
+        return float("nan")
+
     df_min = float("inf")
     for i in df_nona.values:
         if i < df_min:
@@ -93,6 +97,10 @@ def max(df: DataFrame) -> float:
         float: Maximum value in the DataFrame.
     """
     df_nona = df[df.notna()]
+
+    if len(df_nona) < 1:
+        return float("nan")
+
     df_max = float("-inf")
     for i in df_nona.values:
         if i > df_max:
@@ -110,6 +118,10 @@ def test_quartile(Q: float, arg_list: list) -> float:
     Returns:
         float: Value of the quartile.
     """
+
+    if len(arg_list) < 1:
+        return float("nan")
+
     Rinf = arg_list[int(Q.__floor__())]
     Rsup = arg_list[int(Q.__ceil__())]
     final_value = 0
@@ -122,6 +134,8 @@ def test_quartile(Q: float, arg_list: list) -> float:
             final_value = (Rinf + (Rsup * 3)) / 4
         else:
             final_value = arg_list[int(Q.__floor__())]
+    else:
+        final_value = arg_list[int(Q)]
     return final_value
 
 def Q1(df: DataFrame) -> float:
