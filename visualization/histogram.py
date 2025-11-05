@@ -1,8 +1,10 @@
-#!./.venv/bin/python
+#!../.venv/bin/python
+import sys
+sys.path.insert(0, "..")
+
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
-from sys import argv
 from typing import Any
 
 from dslr_lib.errors import print_error
@@ -49,7 +51,7 @@ def generate_subsets(
 def generate_histogram(
     df: DataFrame,
     column: str,
-    graph: Any
+    graph: Any,
 ) -> tuple:
     """
     Generates one histogram in the passed graph.
@@ -180,7 +182,7 @@ def main() -> None:
         None: Nothing
     """
     try:
-        df: DataFrame = read_csv("datasets/dataset_train.csv", header=0).drop("Index", axis=1)
+        df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
         show_histograms(df)
     except FileNotFoundError:
         print_error("FileNotFoundError: provided file not found.")

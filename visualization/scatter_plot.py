@@ -1,4 +1,6 @@
-#!./.venv/bin/python
+#!../.venv/bin/python
+import sys
+sys.path.insert(0, "..")
 
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
@@ -179,7 +181,7 @@ def main() -> None:
     """
     try:
         assert len(argv) >= 1, "ARG_ERR"
-        df: DataFrame = read_csv("./datasets/dataset_train.csv", header=0).drop("Index", axis=1)
+        df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
 
         if len(argv) == 1:
             show_similar(df)
@@ -196,16 +198,16 @@ def main() -> None:
             subjects_list = argv[1:]
         show_plots(df, subjects_list)
     except AssertionError as msg:
-        print(str(msg))
+        print_error(str(msg))
         return
     except FileNotFoundError:
-        print("FileNotFoundError: provided file not found.")
+        print_error("FileNotFoundError: provided file not found.")
     except PermissionError:
-        print("PermissionError: permission denied on provided file.")
+        print_error("PermissionError: permission denied on provided file.")
     except EmptyDataError:
-        print("EmptyDataError: Provided dataset is empty.")
+        print_error("EmptyDataError: Provided dataset is empty.")
     except KeyError as err:
-        print(f"KeyError: {err} is not in the required file.")
+        print_error(f"KeyError: {err} is not in the required file.")
 
 
 if __name__ == "__main__":
