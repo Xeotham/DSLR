@@ -5,10 +5,10 @@ from sys import argv
 from typing import Any
 
 from dslr_lib.errors import print_error
-from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
+from dslr_lib.maths import mean
 
 error = {
-    "ARG_ERR" : "Error: Invalid number of arguments"
+    "ARG_ERR": "Error: Invalid number of arguments"
 }
 
 houses_colors = {
@@ -53,7 +53,7 @@ def generate_histogram(
     """
     Generates one histogram in the passed graph.
     The data is fetched in the dataframe 'df' at column 'column'.
-    
+
     Args:
         df: The dataset
         column: The column we want to plot
@@ -65,14 +65,19 @@ def generate_histogram(
     subsets = generate_subsets(df, column)
     graph.hist(df[column].values, color="k", alpha=0.20)
     for i in range(4):
-        graph.hist(subsets[i], color=houses_colors[id_houses[i]], alpha=0.8, label=id_houses[i])
+        graph.hist(
+            subsets[i],
+            color=houses_colors[id_houses[i]],
+            alpha=0.8,
+            label=id_houses[i]
+        )
     graph.set_title(column)
     return subsets
 
 
 def one_way_anova(
-    infos: list[Any]
-) -> tuple[Any]:
+    infos: list
+) -> tuple:
     """
     Uses inner function f_test to check the ratio between the variance
     between groups over the variance within the groups.
@@ -119,15 +124,13 @@ def one_way_anova(
         return (ssb / dfb) / (ssw / dfw)
 
     min_f = -1
-    min_f_idx = -1
     min_ret = ()
     for info in infos:
         f_result = f_test(info)
         if min_f > f_result or min_f == -1:
             min_f = f_result
-            min_f_idx = info[0]
             min_ret = info
-    return min_ret
+    return min_ret[0], min_ret[1], min_ret[2]
 
 
 def show_histograms(
@@ -148,7 +151,8 @@ def show_histograms(
     for y in range(3):
         for x in range(5):
             if 5 + y * 5 + x >= len(df.columns):
-                break
+                fg.delaxes(ax[y, x])
+                continue
             new_subset = generate_histogram(
                 df,
                 df.columns[5 + y * 5 + x],
@@ -159,7 +163,10 @@ def show_histograms(
                 new_subset,
                 df[df.columns[5 + y * 5 + x]].dropna(),
             ])
-    uniform_scores = one_way_anova(all_subsets)
+    idx, _, __ = one_way_anova(all_subsets)
+    for axis in ['top', 'bottom', 'left', 'right']:
+        ax[idx // 5, idx % 5].spines[axis].set_linewidth(2.5)
+        ax[idx // 5, idx % 5].spines[axis].set_color('m')
     plt.show()
 
 
