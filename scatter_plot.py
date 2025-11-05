@@ -7,6 +7,7 @@ from matplotlib.pyplot import subplots, show, Figure, xlabel, ylabel
 from sys import argv
 from dslr_lib.errors import print_error
 from dslr_lib.maths import min, max, mean, std
+from typing import Any
 
 error = {
     "ARG_ERR" : "Error: Invalid number of arguments.",
@@ -38,6 +39,31 @@ def setup_scatter(df: DataFrame) -> dict[str, DataFrame]:
     hogwarts_house_names = ["Ravenclaw", "Slytherin", "Hufflepuff", "Gryffindor"]
     return {name: df[hogwarts_house == name].select_dtypes(include="number") for name in hogwarts_house_names}
 
+def generate_scatter(df: DataFrame, x_axis: str, y_axis: str, graph: Any, s_size: float = 10) -> Any:
+    """
+    Generates one scatter plot in the passed graph.
+    The data is fetched in the dataframe 'df' at column 'column'.
+
+    Args:
+        df: The dataset
+        graph: The graph object that we can use to show the histogram
+
+    Returns:
+        Any: Returns the graph
+    """
+    separated_house = setup_scatter(df)
+
+    for house, h_df in zip(separated_house.keys(), separated_house.values()):
+        graph.scatter(
+            h_df[x_axis],
+            h_df[y_axis],
+            color=houses_colors[house],
+            alpha=0.7,
+            s=s_size
+        )
+    return graph
+
+
 def show_plots(df: DataFrame, to_show: list) -> None:
     """
     Generate and display a grid of scatter plots for all pairs of numerical columns in the DataFrame,
@@ -60,7 +86,6 @@ def show_plots(df: DataFrame, to_show: list) -> None:
         )
         for name in to_show
     }
-    separated_house = setup_scatter(df)
 
     for x, plt in zip(plot_dict.keys(), plot_dict.values()):
         axs_index = 0
@@ -69,14 +94,7 @@ def show_plots(df: DataFrame, to_show: list) -> None:
             plt[0].suptitle(x)
             plt[0].set_size_inches(15, 15)
             actual_plt = plt[1][i % 4, axs_index]
-            actual_plt.set_title(y)
-            for house, h_df in zip(separated_house.keys(), separated_house.values()):
-                actual_plt.scatter(
-                    h_df[x],
-                    h_df[y],
-                    color=houses_colors[house],
-                    alpha=0.7
-                )
+            generate_scatter(df, x, y, actual_plt).set_title(y)
             if (i + 1) % 4 < i % 4:
                 axs_index += 1
     show()
