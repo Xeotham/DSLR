@@ -1,11 +1,7 @@
 #!./.venv/bin/python
-from numbers import Number
-
-import numpy as np
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv
 from sys import argv
-from numpy import ndarray
 from typing import Any
 
 from dslr_lib.errors import print_error
@@ -52,61 +48,102 @@ def generate_subsets(
 def generate_histogram(
     df: DataFrame,
     column: str,
-    axis: Any
+    graph: Any
 ) -> tuple:
+    """
+    Generates one histogram in the passed graph.
+    The data is fetched in the dataframe 'df' at column 'column'.
+    
+    Args:
+        df: The dataset
+        column: The column we want to plot
+        graph: The graph object that we can use to show the histogram
+
+    Returns:
+        tuple: Returns the subset of the data split by houses
+    """
     subsets = generate_subsets(df, column)
-    axis.hist(df[column].values, color="k", alpha=0.20)
+    graph.hist(df[column].values, color="k", alpha=0.20)
     for i in range(4):
-        axis.hist(subsets[i], color=houses_colors[id_houses[i]], alpha=0.8, label=id_houses[i])
+        graph.hist(subsets[i], color=houses_colors[id_houses[i]], alpha=0.8, label=id_houses[i])
+    graph.set_title(column)
     return subsets
 
 
 def one_way_anova(
     infos: list[Any]
 ) -> tuple[Any]:
+    """
+    Uses inner function f_test to check the ratio between the variance
+    between groups over the variance within the groups.
+    The function tries to find the course whose houses results are the
+    most similar.
+
+    Args:
+        infos: An array of tuple each containing the index's column data,
+            four subsets of the data filtered by house,
+            the whole data unfiltered
+
+    Returns:
+        tuple: Return the tuple whose f-value is the least amongst them all
+    """
     def f_test(
-        subset: list
+        info_tuple: list
     ) -> float:
-        grand_mean = mean(subset[2])
+        """
+        Calculates the F-value of a subset: the ratio of the variance between
+        the groups over the variance within the group
+
+        Args:
+            info_tuple: The tuple containing the data of the course
+                index of column, data split by house, unsplit data
+
+        Returns:
+            float: F-value as a float
+        """
+        grand_mean = mean(info_tuple[2])
         dfb = 4 - 1
-        dfw = len(subset[2]) - 4
+        dfw = len(info_tuple[2]) - 4
         ssb = 0
         for i in range(4):
-            grp_mean = mean(subset[1][i])
-            tmp = len(subset[1][i]) * (grp_mean - grand_mean) ** 2
-            # tmp /= dfb
+            grp_mean = mean(info_tuple[1][i])
+            tmp = len(info_tuple[1][i]) * (grp_mean - grand_mean) ** 2
             ssb += tmp
         ssw = 0
         for i in range(4):
             tmp_sum = 0
-            grp_mean = mean(subset[1][i])
-            for x in subset[1][i]:
-                tmp_sum += (x - grp_mean) ** 2 # / dfw
+            grp_mean = mean(info_tuple[1][i])
+            for x in info_tuple[1][i]:
+                tmp_sum += (x - grp_mean) ** 2
             ssw += tmp_sum
         return (ssb / dfb) / (ssw / dfw)
+
     min_f = -1
     min_f_idx = -1
-    max_f = -1
-    max_f_idx = -1
+    min_ret = ()
     for info in infos:
         f_result = f_test(info)
-        print(f_result)
         if min_f > f_result or min_f == -1:
             min_f = f_result
             min_f_idx = info[0]
-        if f_result > max_f:
-            max_f = f_result
-            max_f_idx = info[0]
-    print(min_f, min_f_idx)
-    print(max_f, max_f_idx)
+            min_ret = info
+    return min_ret
 
 
-
-def find_uniform_distribution(
+def show_histograms(
     df: DataFrame
-):
-    # df.sort_values(by="Hogwarts House", axis=0)
-    _, ax = plt.subplots(3, 5)
+) -> None:
+    """
+    Shows the histograms of all the courses
+
+    Args:
+        df: the data containing all the courses
+
+    Returns:
+        None: Nothing
+    """
+    fg, ax = plt.subplots(3, 5)
+    fg.suptitle("Histogram")
     all_subsets = list()
     for y in range(3):
         for x in range(5):
@@ -126,13 +163,20 @@ def find_uniform_distribution(
     plt.show()
 
 
-def main():
+def main() -> None:
+    """
+    The main function
+
+    Returns:
+        None: Nothing
+    """
     try:
         assert len(argv) == 2, "ARG_ERR"
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
-        find_uniform_distribution(df)
+        show_histograms(df)
     except AssertionError as err:
         print_error(error[str(err)])
+
 
 if __name__ == "__main__":
     main()
