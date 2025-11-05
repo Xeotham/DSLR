@@ -1,6 +1,7 @@
 #!./.venv/bin/python
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv
+from pandas.errors import EmptyDataError
 from sys import argv
 from typing import Any
 
@@ -178,8 +179,17 @@ def main() -> None:
     Returns:
         None: Nothing
     """
-    df: DataFrame = read_csv("datasets/dataset_train.csv", header=0).drop("Index", axis=1)
-    show_histograms(df)
+    try:
+        df: DataFrame = read_csv("datasets/dataset_train.csv", header=0).drop("Index", axis=1)
+        show_histograms(df)
+    except FileNotFoundError:
+        print_error("FileNotFoundError: provided file not found.")
+    except PermissionError:
+        print_error("PermissionError: permission denied on provided file.")
+    except EmptyDataError:
+        print_error("EmptyDataError: Provided dataset is empty.")
+    except KeyError as err:
+        print_error(f"KeyError: {err} is not in the required file.")
 
 if __name__ == "__main__":
     main()
