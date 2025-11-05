@@ -1,6 +1,7 @@
 #!./.venv/bin/python
 
 from pandas import DataFrame, read_csv
+from pandas.errors import EmptyDataError
 from numpy import ndarray, array, vstack, sum
 from matplotlib.pyplot import subplots, show, Figure, xlabel, ylabel
 from sys import argv
@@ -17,7 +18,8 @@ houses_colors = {
     "Ravenclaw": "c",
     "Gryffindor": "r",
     "Slytherin": "g",
-    "Hufflepuff": "y"
+    "Hufflepuff": "y",
+    "All": "b"
 }
 
 def setup_scatter(df: DataFrame) -> dict[str, DataFrame]:
@@ -32,6 +34,7 @@ def setup_scatter(df: DataFrame) -> dict[str, DataFrame]:
                               containing only numerical columns for students of that house.
     """
     hogwarts_house = df["Hogwarts House"]
+    hogwarts_house.dropna(inplace=True)
     hogwarts_house_names = ["Ravenclaw", "Slytherin", "Hufflepuff", "Gryffindor"]
     return {name: df[hogwarts_house == name].select_dtypes(include="number") for name in hogwarts_house_names}
 
@@ -64,6 +67,7 @@ def show_plots(df: DataFrame, to_show: list) -> None:
         df_drop_x = number_df.drop(x, axis=1)
         for i, y in enumerate(df_drop_x):
             plt[0].suptitle(x)
+            plt[0].set_size_inches(15, 15)
             actual_plt = plt[1][i % 4, axs_index]
             actual_plt.set_title(y)
             for house, h_df in zip(separated_house.keys(), separated_house.values()):
@@ -142,6 +146,7 @@ def show_similar(df: DataFrame) -> None:
     f.suptitle("Similar Subjects")
     f.supxlabel(l_diff_x)
     f.supylabel(l_diff_y)
+    f.set_size_inches(15, 15)
     show()
 
 def main() -> None:
@@ -155,25 +160,34 @@ def main() -> None:
         None: Displays scatter plots or prints an error message if arguments are invalid.
     """
     try:
-        assert len(argv) >= 2, "ARG_ERR"
-        df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
+        assert len(argv) >= 1, "ARG_ERR"
+        df: DataFrame = read_csv("./datasets/dataset_train.csv", header=0).drop("Index", axis=1)
 
-        if len(argv) == 2:
+        if len(argv) == 1:
             show_similar(df)
             return
         subjects_name = df.select_dtypes(include="number").columns.tolist()
         subjects_name.append("All")
-        for arg in argv[2:]:
-            if arg == "All" and len(argv) != 3:
+        for arg in argv[1:]:
+            if arg == "All" and len(argv) != 2:
                 raise AssertionError("ALL_ERR")
             assert arg in subjects_name, "PARAM_ERR"
-        if "All" in argv[2:]:
+        if "All" in argv[1:]:
             subjects_list = df.select_dtypes(include="number").columns.tolist()
         else:
-            subjects_list = argv[2:]
+            subjects_list = argv[1:]
         show_plots(df, subjects_list)
-    except AssertionError as err:
-        print_error(error[str(err)])
+    except AssertionError as msg:
+        print(str(msg))
+        return
+    except FileNotFoundError:
+        print("FileNotFoundError: provided file not found.")
+    except PermissionError:
+        print("PermissionError: permission denied on provided file.")
+    except EmptyDataError:
+        print("EmptyDataError: Provided dataset is empty.")
+    except KeyError as err:
+        print(f"KeyError: {err} is not in the required file.")
 
 
 if __name__ == "__main__":
