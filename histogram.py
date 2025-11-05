@@ -147,6 +147,7 @@ def show_histograms(
     """
     fg, ax = plt.subplots(3, 5)
     fg.suptitle("Histogram")
+    fg.set_size_inches(15, 10, forward=True)
     all_subsets = list()
     for y in range(3):
         for x in range(5):
@@ -177,13 +178,8 @@ def main() -> None:
     Returns:
         None: Nothing
     """
-    try:
-        assert len(argv) == 2, "ARG_ERR"
-        df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
-        show_histograms(df)
-    except AssertionError as err:
-        print_error(error[str(err)])
-
+    df: DataFrame = read_csv("datasets/dataset_train.csv", header=0).drop("Index", axis=1)
+    show_histograms(df)
 
 if __name__ == "__main__":
     main()
