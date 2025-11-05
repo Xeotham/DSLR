@@ -1,11 +1,11 @@
 #!./.venv/bin/python
 
 from pandas import DataFrame, read_csv
-from numpy import ndarray, array, vstack
-from matplotlib.pyplot import subplots, show, Figure
+from numpy import ndarray, array, vstack, sum
+from matplotlib.pyplot import subplots, show, Figure, xlabel, ylabel
 from sys import argv
 from dslr_lib.errors import print_error
-from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
+from dslr_lib.maths import min, max, mean, std
 
 error = {
     "ARG_ERR" : "Error: Invalid number of arguments.",
@@ -35,7 +35,7 @@ def setup_scatter(df: DataFrame) -> dict[str, DataFrame]:
     hogwarts_house_names = ["Ravenclaw", "Slytherin", "Hufflepuff", "Gryffindor"]
     return {name: df[hogwarts_house == name].select_dtypes(include="number") for name in hogwarts_house_names}
 
-def show_plot(df: DataFrame, to_show: list) -> None:
+def show_plots(df: DataFrame, to_show: list) -> None:
     """
     Generate and display a grid of scatter plots for all pairs of numerical columns in the DataFrame,
     with points colored by Hogwarts house.
@@ -47,11 +47,6 @@ def show_plot(df: DataFrame, to_show: list) -> None:
     Returns:
         None: Displays the scatter plot grid using matplotlib.
     """
-
-    if to_show[0] == "All":
-        sorted_df = df.select_dtypes(include="number")
-    else:
-        sorted_df = df.select_dtypes(include="number")[to_show]
 
     number_df = df.select_dtypes(include="number")
     plot_dict: dict[str , tuple[Figure, ndarray]] = {
@@ -83,6 +78,72 @@ def show_plot(df: DataFrame, to_show: list) -> None:
     show()
     return
 
+def euclidean_distance(point1, point2):
+    """
+    Calculate the Euclidean distance between two points.
+
+    Args:
+        point1 (ndarray): First point as a numpy array.
+        point2 (ndarray): Second point as a numpy array.
+
+    Returns:
+        float: Euclidean distance between the two points.
+    """
+    return sum([(x + y) ** 2 for x, y in zip(point2, point1)]) ** 0.5
+
+def find_similar(df: DataFrame):
+    """
+    Find the pair of numerical columns in the DataFrame with the smallest Euclidean distance after normalization.
+
+    Args:
+        df (DataFrame): Input DataFrame containing numerical columns.
+
+    Returns:
+        tuple[str, str]: Names of the two columns with the smallest Euclidean distance.
+    """
+    df_nona = df.select_dtypes(include="number").dropna()
+
+    lowest_diff = (float("inf"), ("", ""))
+    check_dict = {name: df_nona[name] for name in df_nona.keys()}
+
+    for x_name, x_df in zip(check_dict.keys(), check_dict.values()):
+        for y_name, y_df in zip(check_dict.keys(), check_dict.values()):
+            if x_name == y_name:
+                continue
+            normalized_x = (x_df - mean(x_df)) / std(x_df)
+            normalized_y = (y_df - mean(y_df)) / std(y_df)
+            diff = euclidean_distance(normalized_x, normalized_y)
+            if diff < lowest_diff[0]:
+                lowest_diff = (diff, (x_name, y_name))
+    return lowest_diff[1]
+
+def show_similar(df: DataFrame) -> None:
+    """
+    Display a scatter plot of the two most similar numerical columns in the DataFrame,
+    with points colored by Hogwarts house.
+
+    Args:
+        df (DataFrame): Input DataFrame containing student data, including a "Hogwarts House" column.
+
+    Returns:
+        None: Displays the scatter plot using matplotlib.
+    """
+    f, ax = subplots()
+
+    separated_house = setup_scatter(df)
+
+    l_diff_x, l_diff_y = find_similar(df)
+
+    for house, h_df in zip(separated_house.keys(), separated_house.values()):
+        ax.scatter(h_df[l_diff_x],
+                   h_df[l_diff_y],
+                   color=houses_colors[house],
+                   alpha=0.5)
+    f.suptitle("Similar Subjects")
+    f.supxlabel(l_diff_x)
+    f.supylabel(l_diff_y)
+    show()
+
 def main() -> None:
     """
     Main function to read a CSV file and display scatter plots of the data.
@@ -94,9 +155,12 @@ def main() -> None:
         None: Displays scatter plots or prints an error message if arguments are invalid.
     """
     try:
-        assert len(argv) >= 3, "ARG_ERR"
-
+        assert len(argv) >= 2, "ARG_ERR"
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
+
+        if len(argv) == 2:
+            show_similar(df)
+            return
         subjects_name = df.select_dtypes(include="number").columns.tolist()
         subjects_name.append("All")
         for arg in argv[2:]:
@@ -107,7 +171,7 @@ def main() -> None:
             subjects_list = df.select_dtypes(include="number").columns.tolist()
         else:
             subjects_list = argv[2:]
-        show_plot(df, subjects_list)
+        show_plots(df, subjects_list)
     except AssertionError as err:
         print_error(error[str(err)])
 
