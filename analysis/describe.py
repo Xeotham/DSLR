@@ -1,4 +1,6 @@
-#!./.venv/bin/python
+#!../.venv/bin/python
+import sys
+sys.path.insert(0, "..")
 
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
@@ -21,7 +23,7 @@ def describe(df: DataFrame):
 
 def main():
     try:
-        df: DataFrame = read_csv("datasets/dataset_train.csv", header=0).drop("Index", axis=1).select_dtypes(include="number")
+        df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1).select_dtypes(include="number")
         describe(df)
     except FileNotFoundError:
         print_error("FileNotFoundError: provided file not found.")
