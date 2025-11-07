@@ -5,7 +5,7 @@ sys.path.insert(0, "..")
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
 from numpy import ndarray, array, vstack
-
+from sys import argv
 from dslr_lib.errors import print_error
 from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
 
@@ -23,8 +23,11 @@ def describe(df: DataFrame):
 
 def main():
     try:
-        df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1).select_dtypes(include="number")
+        assert len(argv) == 2
+        df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1).select_dtypes(include="number")
         describe(df)
+    except AssertionError:
+        print_error("Please pass a dataset as parameter")
     except FileNotFoundError:
         print_error("FileNotFoundError: provided file not found.")
     except PermissionError:
