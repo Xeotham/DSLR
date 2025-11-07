@@ -37,6 +37,8 @@ def mean(df: DataFrame) -> float:
         float: Arithmetic mean of non-NaN values.
     """
     df_nona = df[df.notna()]
+    if count(df_nona) == 0:
+        return 0
     return sum(df_nona.values) / count(df_nona)
 
 def var(df: DataFrame) -> float:
@@ -50,6 +52,8 @@ def var(df: DataFrame) -> float:
         float: Variance of non-NaN values.
     """
     df_nona = df[df.notna()]
+    if count(df_nona) == 0:
+        return 0
     df_mean = mean(df)
     return sum([(i - df_mean) ** 2 for i in df_nona.values]) / count(df_nona)
 
