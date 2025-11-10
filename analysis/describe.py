@@ -1,6 +1,8 @@
-#!../.venv/bin/python
+#!../.venv/bin/python3
 import sys
-sys.path.insert(0, "..")
+sys.path.insert(1, "..")
+sys.path.insert(2, ".")
+sys.path.insert(3, "./analysis")
 
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
@@ -18,7 +20,7 @@ def describe(df: DataFrame):
     describe_df = DataFrame(describe_arr).rename(index={i: name for i, name in enumerate(oper_names)},
                                                  columns={i:name for i, name in enumerate(df.keys())})
     print(describe_df)
-    print(df.describe())
+    # print(df.describe())
 
 
 def main():
