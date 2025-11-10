@@ -3,17 +3,29 @@ from numpy import ndarray, exp
 
 
 def sigmoid(
-    z: ndarray
-) -> ndarray:
+    z: ndarray[float]
+) -> ndarray[float]:
+    """
+    Applies a sigmoid function h to each value of the matrix z,
+    where h(x) = 1 / (1 + e^(x))
+
+    Args:
+        z: A matrix
+
+    Returns:
+        ndarray: A new matrix where each element v has been mapped to h(v)
+    """
     return 1 / (1 + exp(-z))
 
 
 def calculate_gradient(
-    matrix_x: ndarray,
-    matrix_y: ndarray,
-    matrix_t: ndarray,
-) -> ndarray:
+    matrix_x: ndarray[float],
+    matrix_y: ndarray[float],
+    matrix_t: ndarray[float],
+) -> ndarray[float]:
     """
+    Calculates the gradients in order to then minimizes the loss function
+    of our logistic regression
 
     Args:
         matrix_x: The current set of features
@@ -21,20 +33,25 @@ def calculate_gradient(
         matrix_t: The current set of parameters
 
     Returns:
-
+        ndarray: A matrix of gradient that will be used to minimize the cost
+            function
     """
     m = matrix_y.size
     return (matrix_x.T @ (sigmoid(matrix_x @ matrix_t) - matrix_y)) / m
 
 
 def gradient_descent(
-    matrix_x: ndarray,
-    matrix_y: ndarray,
+    matrix_x: ndarray[float],
+    matrix_y: ndarray[float],
     alpha: float =0.1,
     max_iter: int=100,
     tol: float=1e-7,
-) -> ndarray:
+) -> ndarray[float]:
     """
+    Minimizes the log loss function in order using the gradient
+    descent algorithm
+    The function effectively executes a logistic regression using
+    the features (x) and the result (y) to classify
 
     Args:
         matrix_x: The current set of features
@@ -44,7 +61,7 @@ def gradient_descent(
         tol:    The tolerance rate
 
     Returns:
-        matrix_t: A set of parameters
+        matrix_t: A set of parameters to be able to classify and do predictions
     """
     matrix_xb = np.c_[np.ones((matrix_x.shape[0], 1)), matrix_x]
     matrix_t = np.zeros((matrix_xb.shape[1], 1))
@@ -58,19 +75,43 @@ def gradient_descent(
 
 
 def predict_proba(
-    matrix_x: ndarray,
-    matrix_t: ndarray,
-) -> float:
+    matrix_x: ndarray[float],
+    matrix_t: ndarray[float],
+) -> ndarray[float]:
+    """
+    Uses a matrix of weight parameters and an input vector of features
+    to predict the chance of each values of being what we're classifying
+
+    Args:
+        matrix_x: input vector of features
+        matrix_t: matrix of weight parameters
+
+    Returns:
+        ndarray: A matrix of probability
+    """
     matrix_xb = np.c_[np.ones((matrix_x.shape[0], 1)), matrix_x]
     return sigmoid(matrix_xb @ matrix_t)
 
 
 def predict(
-    matrix_x: ndarray,
-    matrix_t: ndarray,
+    matrix_x: ndarray[float],
+    matrix_t: ndarray[float],
     threshold: float = 0.5
-) -> int:
+) -> ndarray[bool]:
+    """
+    A wrapper around predict_proba() that checks if the chances of the value
+    being 'true' is higher than the threshold
+
+    Args:
+        matrix_x: input vector of features
+        matrix_t: matrix of weight parameters
+        threshold: the least probability threshold required to return true
+
+    Returns:
+        ndarray: A matrix of boolean
+    """
     return predict_proba(matrix_x, matrix_t) >= threshold
+
 
 # pip install scikit-learn
 
