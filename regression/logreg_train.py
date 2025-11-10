@@ -9,7 +9,6 @@ sys.path.insert(0, "..")
 from dslr_lib.errors import print_error
 
 
-
 def main():
     try:
         assert len(argv) == 2
