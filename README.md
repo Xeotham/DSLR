@@ -2,11 +2,12 @@
 Project to learn Logistic Regression, a classification Machine Learning Algorithm.
 # Sources:
 - [Geeks for Geeks explaining what is Logistic Regression](https://www.geeksforgeeks.org/machine-learning/understanding-logistic-regression/)
-- [IBM Article about Logistic Regression and it's difference with Linear Regression](https://www.ibm.com/think/topics/logistic-regression)
+- [IBM Article about Logistic Regression, and it's difference with Linear Regression](https://www.ibm.com/think/topics/logistic-regression)
 - [Youtube video which explain the Logistic Regression](https://www.youtube.com/watch?v=3bvM3NyMiE0)
 - [Youtube video which explain multinomial Logistic Regression](https://www.youtube.com/watch?v=KbK_Nb9OS70)
 - [Medium article explaining what's a one-vs-all logistic regression](https://medium.com/data-science/multi-class-classification-one-vs-all-one-vs-one-94daed32a87b)
 - [Youtube video on how to implement logistic regression from scratch with every explanation](https://www.youtube.com/watch?v=S6iuhdYsGC8)
+- [Youtube video on how to implement logistic regression from scratch with more visual explanation](https://www.youtube.com/watch?v=3giTXZbyf1Q)
 - [GeeksForGeeks article about multiclass Logistic Regression](https://www.geeksforgeeks.org/artificial-intelligence/multiclass-logistic-regression/)
 - [Wikipedia of Multinomial Logistic Regression](https://en.wikipedia.org/wiki/Multinomial_logistic_regression)
 - [Wikipedia of the SoftMax Function](https://en.wikipedia.org/wiki/Softmax_function)
@@ -17,7 +18,7 @@ Execute this in your terminal:
 ```bash
 > source ./setup.sh
 ```
-It will create a **virtual environment** for **python**, import it requirements and source it to your current shell.
+It will create a **virtual environment** for **python**, import its requirements and source it to your current shell.
 
 You can then execute our scripts.
 
@@ -33,7 +34,7 @@ You need to recreate some maths function like:
 - **max** (Maximal)
 - **25% / 50% / 75%** (percentile)
 
-You then need to **print** it to clearly see what's each of those **information** for each **features**.
+You then need to **print** it to clearly see what's each of those **information** for each **feature**.
 
 Ex for our DataSet:
 
@@ -72,14 +73,14 @@ The goal is now to create two scripts, one to train a **Logistic Regression** mo
 ## Concept / Uses
 
 The **Logistic Regression** is a simple **binary classification algorythm**.
-It mean that it serve to know if a point is either in one group or another (True or False, Yes or No, in group A or not in group A).
+It means that it serve to know if a point is either in one group or another (True or False, Yes or No, in group A or not in group A).
 
 **Binary classification** is good, but you can also use the **logistic regression** to see if a point is in one of many group.
 To do that, you need to train multiple **binary logistic regression** for each group (Is in group or not) and combine them with the **SoftMax** algorithm.
 
-It use the **gradient descent** on a **sigmoid function** to find the closest curve for the classification.
+It uses the **gradient descent** on a **sigmoid function** to find the closest curve for the classification.
 
 ![binary_logreg](https://www.ibm.com/content/dam/connectedassets-adobe-cms/worldwide-content/creative-assets/s-migr/ul/g/cc/97/loan-approval-by-savings-amount.component.crop-1by1-xl.ts=1761023314899.png/content/adobe-cms/us/en/think/topics/logistic-regression/jcr:content/root/table_of_contents/body-article-8/image_833378494)
 
-On this exemple, the **sigmoid curve** tell us that the more **saving amount** you have **better are your chance** to get a **Loan Approved**.
+On this exemple, the **sigmoid curve** tell us that the more **saving amount** you have, **better are your chance** to get a **Loan Approved**.
 Better the **curve fit the point**, **better your prediction** are. That's why we use the **gradient descent**: to find the **most fit curve**.
