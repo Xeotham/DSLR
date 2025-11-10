@@ -1,7 +1,7 @@
 from pandas import DataFrame
-from numpy import sum
+from numpy import ndarray, sum
 
-def total_count(df: DataFrame) -> int:
+def total_count(df: ndarray) -> int:
     """
     Calculate the total number of rows in a DataFrame, including NaN values.
 
@@ -13,7 +13,7 @@ def total_count(df: DataFrame) -> int:
     """
     return df.shape[0]
 
-def count(df: DataFrame) -> int:
+def count(df: ndarray) -> int:
     """
     Calculate the number of non-NaN rows in a DataFrame.
 
@@ -23,10 +23,10 @@ def count(df: DataFrame) -> int:
     Returns:
         int: Number of non-NaN rows in the DataFrame.
     """
-    df_nona = df[df.notna()]
-    return df_nona.shape[0]
+    # df_nona = df[df.notna()]
+    return df.shape[0]
 
-def mean(df: DataFrame) -> float:
+def mean(df: ndarray) -> float:
     """
     Calculate the arithmetic mean of non-NaN values in a DataFrame.
 
@@ -36,12 +36,12 @@ def mean(df: DataFrame) -> float:
     Returns:
         float: Arithmetic mean of non-NaN values.
     """
-    df_nona = df[df.notna()]
-    if count(df_nona) == 0:
+    # df_nona = df[df.notna()]
+    if count(df) == 0:
         return 0
-    return sum(df_nona.values) / count(df_nona)
+    return sum(df) / count(df)
 
-def var(df: DataFrame) -> float:
+def var(df: ndarray) -> float:
     """
     Calculate the variance of non-NaN values in a DataFrame.
 
@@ -51,13 +51,13 @@ def var(df: DataFrame) -> float:
     Returns:
         float: Variance of non-NaN values.
     """
-    df_nona = df[df.notna()]
-    if count(df_nona) == 0:
+    # df_nona = df[df.notna()]
+    if count(df) == 0:
         return 0
     df_mean = mean(df)
-    return sum([(i - df_mean) ** 2 for i in df_nona.values]) / count(df_nona)
+    return sum([(i - df_mean) ** 2 for i in df]) / count(df)
 
-def std(df: DataFrame) -> float:
+def std(df: ndarray) -> float:
     """
     Calculate the standard deviation of non-NaN values in a DataFrame.
 
@@ -69,7 +69,7 @@ def std(df: DataFrame) -> float:
     """
     return var(df) ** 0.5
 
-def min(df: DataFrame) -> float:
+def min(df: ndarray) -> float:
     """
     Find the minimum value among non-NaN values in a DataFrame.
 
@@ -79,18 +79,17 @@ def min(df: DataFrame) -> float:
     Returns:
         float: Minimum value in the DataFrame.
     """
-    df_nona = df[df.notna()]
 
-    if len(df_nona) < 1:
+    if len(df) < 1:
         return float("nan")
 
     df_min = float("inf")
-    for i in df_nona.values:
+    for i in df:
         if i < df_min:
             df_min = i
     return df_min
 
-def max(df: DataFrame) -> float:
+def max(df: ndarray) -> float:
     """
     Find the maximum value among non-NaN values in a DataFrame.
 
@@ -100,13 +99,11 @@ def max(df: DataFrame) -> float:
     Returns:
         float: Maximum value in the DataFrame.
     """
-    df_nona = df[df.notna()]
-
-    if len(df_nona) < 1:
+    if len(df) < 1:
         return float("nan")
 
     df_max = float("-inf")
-    for i in df_nona.values:
+    for i in df:
         if i > df_max:
             df_max = i
     return df_max
@@ -142,7 +139,7 @@ def test_quartile(Q: float, arg_list: list) -> float:
         final_value = arg_list[int(Q)]
     return final_value
 
-def Q1(df: DataFrame) -> float:
+def Q1(df: ndarray) -> float:
     """
     Calculate the first quartile (Q1) of non-NaN values in a DataFrame.
 
@@ -152,11 +149,10 @@ def Q1(df: DataFrame) -> float:
     Returns:
         float: First quartile (Q1) value.
     """
-    df_nona = df[df.notna()].sort_values()
-    df_q1 = ((len(df_nona) + 3) / 4)
-    return test_quartile(df_q1 - 1, df_nona.to_list())
+    df_q1 = ((len(df) + 3) / 4)
+    return test_quartile(df_q1 - 1, df.tolist())
 
-def Q2(df: DataFrame) -> float:
+def Q2(df: ndarray) -> float:
     """
     Calculate the second quartile (Q2, median) of non-NaN values in a DataFrame.
 
@@ -166,11 +162,10 @@ def Q2(df: DataFrame) -> float:
     Returns:
         float: Second quartile (Q2) value.
     """
-    df_nona = df[df.notna()].sort_values()
-    df_q2 = (((len(df_nona)) + 1) / 2)
-    return test_quartile(df_q2 - 1, df_nona.to_list())
+    df_q2 = (((len(df)) + 1) / 2)
+    return test_quartile(df_q2 - 1, df.tolist())
 
-def Q3(df: DataFrame) -> float:
+def Q3(df: ndarray) -> float:
     """
     Calculate the third quartile (Q3) of non-NaN values in a DataFrame.
 
@@ -180,11 +175,10 @@ def Q3(df: DataFrame) -> float:
     Returns:
         float: Third quartile (Q3) value.
     """
-    df_nona = df[df.notna()].sort_values()
-    df_q3 = (((3 * len(df_nona)) + 1) / 4)
-    return test_quartile(df_q3 - 1, df_nona.to_list())
+    df_q3 = (((3 * len(df)) + 1) / 4)
+    return test_quartile(df_q3 - 1, df.tolist())
 
-def nan_count(df: DataFrame) -> int:
+def nan_count(df: ndarray) -> int:
     """
     Count the number of NaN values in a DataFrame.
 
@@ -194,4 +188,23 @@ def nan_count(df: DataFrame) -> int:
     Returns:
         int: Number of NaN values in the DataFrame.
     """
-    return sum(1 for x in df.values.flatten() if x != x)
+    return sum(1 for x in df.flatten() if x != x)
+
+def unnormalize(value, base):
+    """
+    Function to unnormalize a value.
+    :param value: Value to unnormalize
+    :param base: List to unnormalize with.
+    :return: Unnormalized value.
+    """
+    return (value * std(base)) + mean(base)
+
+
+def normalize(value, base):
+    """
+    Function to normalize a value based on a list.
+    :param value: Value to normalize.
+    :param base: List to normalize with.
+    :return: Normalized value.
+    """
+    return (value - mean(base)) / std(base)

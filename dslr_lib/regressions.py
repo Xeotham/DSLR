@@ -64,7 +64,7 @@ def gradient_descent(
         matrix_t: A set of parameters to be able to classify and do predictions
     """
     matrix_xb = c_[ones((matrix_x.shape[0], 1)), matrix_x]
-    matrix_t = zeros((matrix_xb.shape[1], 1))
+    matrix_t = zeros((matrix_xb.shape[1], matrix_y.shape[1]))
 
     for i in range(max_iter):
         gradient = calculate_gradient(matrix_xb, matrix_y, matrix_t)
