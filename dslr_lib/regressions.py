@@ -1,5 +1,5 @@
-import numpy as np
-from numpy import ndarray, exp
+from numpy import ndarray, exp, c_, ones, zeros
+from numpy.linalg import norm
 
 
 def sigmoid(
@@ -63,13 +63,13 @@ def gradient_descent(
     Returns:
         matrix_t: A set of parameters to be able to classify and do predictions
     """
-    matrix_xb = np.c_[np.ones((matrix_x.shape[0], 1)), matrix_x]
-    matrix_t = np.zeros((matrix_xb.shape[1], 1))
+    matrix_xb = c_[ones((matrix_x.shape[0], 1)), matrix_x]
+    matrix_t = zeros((matrix_xb.shape[1], 1))
 
     for i in range(max_iter):
         gradient = calculate_gradient(matrix_xb, matrix_y, matrix_t)
         matrix_t -= alpha * gradient
-        if np.linalg.norm(gradient) < tol:
+        if norm(gradient) < tol:
             break
     return matrix_t
 
@@ -89,7 +89,7 @@ def predict_proba(
     Returns:
         ndarray: A matrix of probability
     """
-    matrix_xb = np.c_[np.ones((matrix_x.shape[0], 1)), matrix_x]
+    matrix_xb = c_[ones((matrix_x.shape[0], 1)), matrix_x]
     return sigmoid(matrix_xb @ matrix_t)
 
 
