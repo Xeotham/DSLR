@@ -1,6 +1,8 @@
 #!../.venv/bin/python
 import sys
-sys.path.insert(0, "..")
+sys.path.insert(1, "..")
+sys.path.insert(2, ".")
+sys.path.insert(3, "./visualization")
 
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv

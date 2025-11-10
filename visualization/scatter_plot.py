@@ -1,14 +1,16 @@
 #!../.venv/bin/python
 import sys
-sys.path.insert(0, "..")
+sys.path.insert(1, "..")
+sys.path.insert(2, ".")
+sys.path.insert(3, "./visualization")
 
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
-from numpy import ndarray, array, vstack, sum
-from matplotlib.pyplot import subplots, show, Figure, xlabel, ylabel
+from numpy import ndarray, sum
+from matplotlib.pyplot import subplots, show, Figure
 from sys import argv
 from dslr_lib.errors import print_error
-from dslr_lib.maths import min, max, mean, std
+from dslr_lib.maths import mean, std
 from typing import Any
 
 error = {
