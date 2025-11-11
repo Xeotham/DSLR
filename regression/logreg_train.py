@@ -9,11 +9,19 @@ sys.path.insert(2, ".")
 from numpy import ndarray, vectorize, array
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
+from pandas.api.types import is_numeric_dtype
 
-from dslr_lib.maths import normalize
-from dslr_lib.regressions import gradient_descent
+from dslr_lib.maths import normalize, mean
+from dslr_lib.regressions import gradient_descent, predict, predict_proba
 from dslr_lib.errors import print_error
-from matplotlib.pyplot import plot, scatter, show
+from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
+
+houses_colors = {
+    "Ravenclaw": "c",
+    "Gryffindor": "r",
+    "Slytherin": "g",
+    "Hufflepuff": "y"
+}
 
 houses_id = {
     "Ravenclaw": 0,
@@ -22,11 +30,23 @@ houses_id = {
     "Hufflepuff": 3
 }
 
+id_houses = {
+    0: "Ravenclaw",
+    1: "Gryffindor",
+    2: "Slytherin",
+    3: "Hufflepuff",
+}
+
 def prepare_dataset(
     df: DataFrame
 ) -> tuple[ndarray[int], ndarray[float]]:
-    df = df.dropna()
-    matrix_y = df["Hogwarts House"].map(houses_id)
+    for i in range(0, len(df.columns)):
+        if not is_numeric_dtype(df[df.columns[i]]):
+            continue
+        df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
+    matrix_y = df[df.columns[0]]
+    if "Hogwarts House" in df.columns:
+        matrix_y = df["Hogwarts House"].map(houses_id)
     matrix_x = df.select_dtypes(include="number")
     matrix_x = matrix_x[[
         "Herbology",
@@ -46,7 +66,6 @@ def regression_wrapper(
     train_y[matrix_y != houses] = 0
     train_y[matrix_y == houses] = 1
     weights = gradient_descent(matrix_x, train_y)
-    # print(f"weight: {weights.flatten()}")
     return weights.flatten()
 
 
@@ -55,7 +74,7 @@ def logreg_train(
     matrix_x: ndarray[float],
 ) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
     norm_x = matrix_x.copy()
-    norm_x = normalize(norm_x, norm_x)
+    norm_x = normalize(norm_x, matrix_x)
     t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
     t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
@@ -70,7 +89,6 @@ def main():
         matrix_y, matrix_x = prepare_dataset(df)
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
-        print(array(thetas_weights))
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
             dtype=float,
