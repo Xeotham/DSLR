@@ -1,18 +1,22 @@
 #!../.venv/bin/python
 import sys
 from sys import argv
+
+from numpy.ma.extras import hstack
+
+
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
-# sys.path.insert(3, "./visualization")
+sys.path.insert(3, "../visualization")
 
-
+from visualization.scatter_plot import setup_scatter
 from numpy import ndarray, vectorize, array
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
 
 from dslr_lib.maths import normalize, mean
-from dslr_lib.regressions import gradient_descent, predict, predict_proba
+from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
 from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
 
@@ -50,8 +54,6 @@ def prepare_dataset(
     matrix_x = df.select_dtypes(include="number")
     matrix_x = matrix_x[[
         "Herbology",
-        "Astronomy",
-        "Ancient Runes",
         "Defense Against the Dark Arts"
     ]]
     return matrix_y.values, matrix_x.values
@@ -65,8 +67,27 @@ def regression_wrapper(
     train_y = matrix_y.copy()
     train_y[matrix_y != houses] = 0
     train_y[matrix_y == houses] = 1
-    weights = gradient_descent(matrix_x, train_y)
+    weights = gradient_descent(matrix_x, train_y, max_iter=50000, tol=0, alpha=0.001)
+
     return weights.flatten()
+
+
+def plot_boundaries(
+    matrix_y: ndarray[int],
+    matrix_x: ndarray[float],
+    matrix_t: ndarray[float],
+    houses: int
+):
+    b = matrix_t[-1]
+    w = matrix_t[0 : -1]
+    m = w[0] / w[1]
+    c = b / w[1]
+    xmin, xmax = matrix_x[:, 0].min() - 0.5, matrix_x[:, 0].max() + 0.5
+    ymin, ymax = matrix_y[:, 0].min() - 0.5, matrix_y[:, 0].max() + 0.5
+    xd = array([xmin, xmax])
+    yd = m * xd + c
+    plot(xd, yd, 'k', ls='--', color=houses_colors[id_houses[houses]])
+    # fill_between(xd, yd, ymin, color=houses_colors[id_houses[houses]], label=id_houses[houses], alpha=0.2)
 
 
 def logreg_train(
@@ -79,6 +100,31 @@ def logreg_train(
     t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
     t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
+
+    # print("Ravenclaw weights: ", t_ravenclaw)
+    plot_boundaries(matrix_y, norm_x, t_ravenclaw, 0)
+    # print("Slytherin weights: ", t_slytherin)
+    plot_boundaries(matrix_y, norm_x, t_slytherin, 1)
+    # print("gryffindor weights: ", t_gryffindor)
+    plot_boundaries(matrix_y, norm_x, t_gryffindor, 2)
+    # print("Hufflepuff weights: ", t_hufflepuff)
+    plot_boundaries(matrix_y, norm_x, t_hufflepuff, 3)
+
+    full_df = hstack((matrix_y, norm_x))
+    separated_house = {id_houses[house]: full_df[full_df[:, 0] == house][:, 1:] for house in range(0, 4)}
+
+    # scatter(matrix_x[:, 0], matrix_x[:, 1])
+    for house, h_df in zip(separated_house.keys(), separated_house.values()):
+        # print(f"{house}: {h_df}")
+        scatter(
+            h_df[:, 0],
+            h_df[:, 1],
+            color=houses_colors[house],
+            alpha=0.7,
+        )
+    # legend()
+    show()
+
     return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
 
 
