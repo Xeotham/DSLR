@@ -149,8 +149,10 @@ def Q1(df: ndarray) -> float:
     Returns:
         float: First quartile (Q1) value.
     """
-    df_q1 = ((len(df) + 3) / 4)
-    return test_quartile(df_q1 - 1, df.tolist())
+    sorted_df = df.copy()
+    sorted_df.sort()
+    df_q1 = ((len(sorted_df) + 3) / 4)
+    return test_quartile(df_q1 - 1, sorted_df.tolist())
 
 def Q2(df: ndarray) -> float:
     """
@@ -162,8 +164,10 @@ def Q2(df: ndarray) -> float:
     Returns:
         float: Second quartile (Q2) value.
     """
-    df_q2 = (((len(df)) + 1) / 2)
-    return test_quartile(df_q2 - 1, df.tolist())
+    sorted_df = df.copy()
+    sorted_df.sort()
+    df_q2 = (((len(sorted_df)) + 1) / 2)
+    return test_quartile(df_q2 - 1, sorted_df.tolist())
 
 def Q3(df: ndarray) -> float:
     """
@@ -175,8 +179,10 @@ def Q3(df: ndarray) -> float:
     Returns:
         float: Third quartile (Q3) value.
     """
-    df_q3 = (((3 * len(df)) + 1) / 4)
-    return test_quartile(df_q3 - 1, df.tolist())
+    sorted_df = df.copy()
+    sorted_df.sort()
+    df_q3 = (((3 * len(sorted_df)) + 1) / 4)
+    return test_quartile(df_q3 - 1, sorted_df.tolist())
 
 def nan_count(df: ndarray) -> int:
     """
