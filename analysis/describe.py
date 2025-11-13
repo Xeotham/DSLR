@@ -4,7 +4,7 @@ sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 sys.path.insert(3, "./analysis")
 
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, set_option
 from pandas.errors import EmptyDataError
 from numpy import ndarray, array, vstack
 from sys import argv
