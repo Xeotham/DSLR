@@ -12,3 +12,7 @@ def threaded(func):
         thread.start()
         return thread
     return wrapper
+
+@threaded
+def test():
+    print("hello")
