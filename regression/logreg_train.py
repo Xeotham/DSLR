@@ -10,11 +10,11 @@ sys.path.insert(2, ".")
 sys.path.insert(3, "../visualization")
 
 from visualization.scatter_plot import setup_scatter
-from numpy import ndarray, vectorize, array
+from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
-
+from sklearn.metrics import accuracy_score
 from dslr_lib.maths import normalize, mean
 from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
@@ -42,12 +42,16 @@ id_houses = {
 }
 
 def prepare_dataset(
-    df: DataFrame
+    df: DataFrame,
+    fill: bool = False
 ) -> tuple[ndarray[int], ndarray[float]]:
-    for i in range(0, len(df.columns)):
-        if not is_numeric_dtype(df[df.columns[i]]):
-            continue
-        df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
+    if fill:
+        for i in range(0, len(df.columns)):
+            if not is_numeric_dtype(df[df.columns[i]]):
+                continue
+            df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
+    else:
+        df.dropna(inplace=True)
     matrix_y = df[df.columns[0]]
     if "Hogwarts House" in df.columns:
         matrix_y = df["Hogwarts House"].map(houses_id)
@@ -67,7 +71,7 @@ def regression_wrapper(
     train_y = matrix_y.copy()
     train_y[matrix_y != houses] = 0
     train_y[matrix_y == houses] = 1
-    weights = gradient_descent(matrix_x, train_y, max_iter=50000, tol=0, alpha=0.001)
+    weights = gradient_descent(matrix_x, train_y, max_iter=1000, alpha=0.01)
 
     return weights.flatten()
 
@@ -101,13 +105,9 @@ def logreg_train(
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
     t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
 
-    # print("Ravenclaw weights: ", t_ravenclaw)
     plot_boundaries(matrix_y, norm_x, t_ravenclaw, 0)
-    # print("Slytherin weights: ", t_slytherin)
     plot_boundaries(matrix_y, norm_x, t_slytherin, 1)
-    # print("gryffindor weights: ", t_gryffindor)
     plot_boundaries(matrix_y, norm_x, t_gryffindor, 2)
-    # print("Hufflepuff weights: ", t_hufflepuff)
     plot_boundaries(matrix_y, norm_x, t_hufflepuff, 3)
 
     full_df = hstack((matrix_y, norm_x))
@@ -115,7 +115,6 @@ def logreg_train(
 
     # scatter(matrix_x[:, 0], matrix_x[:, 1])
     for house, h_df in zip(separated_house.keys(), separated_house.values()):
-        # print(f"{house}: {h_df}")
         scatter(
             h_df[:, 0],
             h_df[:, 1],
@@ -128,6 +127,20 @@ def logreg_train(
     return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
 
 
+def generate_predictions(
+    matrix_x: ndarray,
+    matrix_t: tuple,
+) -> ndarray:
+    predictions = zeros((matrix_x.shape[0], 4))
+    for i in range(predictions.shape[1]):
+        predicted = predict_proba(matrix_x, matrix_t[i])
+        predictions[:, i] = predicted.ravel()
+    chosen_houses = zeros((matrix_x.shape[0], 1))
+    for i in range(chosen_houses.shape[0]):
+        chosen_houses[i][0] = argmax(predictions[i])
+    return chosen_houses
+
+
 def main():
     try:
         assert len(argv) == 2
@@ -135,6 +148,7 @@ def main():
         matrix_y, matrix_x = prepare_dataset(df)
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
+
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
             dtype=float,
