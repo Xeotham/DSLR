@@ -14,7 +14,6 @@ from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
-from sklearn.metrics import accuracy_score
 from dslr_lib.maths import normalize, mean
 from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
