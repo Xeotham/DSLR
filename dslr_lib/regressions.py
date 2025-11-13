@@ -112,7 +112,6 @@ def predict(
     """
     return predict_proba(matrix_x, matrix_t) >= threshold
 
-
 # pip install scikit-learn
 
 # from sklearn.datasets import load_breast_cancer

@@ -35,8 +35,8 @@ def load_parameters(
     df = read_csv("../datasets/weights.csv")
     return (
         array([df["ravenclaw"].values]).T,
-        array([df["gryffindor"].values]).T,
         array([df["slytherin"].values]).T,
+        array([df["gryffindor"].values]).T,
         array([df["hufflepuff"].values]).T,
     )
 
@@ -45,7 +45,7 @@ def prepare_predictions(
     test_path: str
 ) -> ndarray:
     test_df: DataFrame = read_csv(test_path, header=0).drop("Index", axis=1)
-    _, test_x = prepare_dataset(test_df)
+    _, test_x = prepare_dataset(test_df, fill=True)
     train_df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
     _, train_x = prepare_dataset(train_df)
     return normalize(test_x, train_x)
