@@ -12,11 +12,12 @@ from dslr_lib.errors import print_error
 from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
 
 def describe(df: DataFrame):
-    oper_lst = [count, mean, var, std, min, max, Q1, Q2, Q3, nan_count]
+    oper_lst = [count, mean, var, std, min, max, Q1, Q2, Q3]
     oper_names = ["Total count", "Count", "Mean", "Variance", "Std Dev", "Min", "Max", "25%", "50%", "75%", "NaN Count"]
     describe_arr = array([[total_count(df[i]) for i in df.keys()]])
     for f in oper_lst:
         describe_arr = vstack((describe_arr, array([[f(df[i].dropna().values) for i in df.keys()]])))
+    describe_arr = vstack((describe_arr, array([[nan_count(df[i].values) for i in df.keys()]])))
     describe_df = DataFrame(describe_arr).rename(index={i: name for i, name in enumerate(oper_names)},
                                                  columns={i:name for i, name in enumerate(df.keys())})
     print(describe_df)
