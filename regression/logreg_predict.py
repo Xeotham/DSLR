@@ -95,5 +95,6 @@ def main():
     except KeyError as err:
         print_error(f"KeyError: {err} is not in the required file.")
 
+
 if __name__ == "__main__":
     main()
