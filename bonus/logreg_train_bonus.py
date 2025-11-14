@@ -2,7 +2,6 @@
 import sys
 from sys import argv
 
-
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 sys.path.insert(3, "../visualization")
@@ -11,35 +10,10 @@ from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
-from dslr_lib.maths import normalize, mean
-from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
 from dslr_lib.opti_bonus import cross_validation, logreg_train
-from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
+from dslr_lib.regressions import houses_id, id_houses, houses_colors
 
-# TODO: Place on dslr_libs
-houses_colors = {
-    "Ravenclaw": "c",
-    "Gryffindor": "r",
-    "Slytherin": "g",
-    "Hufflepuff": "y"
-}
-
-# TODO: Place on dslr_libs
-houses_id = {
-    "Ravenclaw": 0,
-    "Gryffindor": 1,
-    "Slytherin": 2,
-    "Hufflepuff": 3
-}
-
-# TODO: Place on dslr_libs
-id_houses = {
-    0: "Ravenclaw",
-    1: "Gryffindor",
-    2: "Slytherin",
-    3: "Hufflepuff",
-}
 
 # TODO: Place on dslr_lib
 def prepare_dataset(
