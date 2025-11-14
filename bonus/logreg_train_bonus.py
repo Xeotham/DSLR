@@ -14,7 +14,7 @@ from pandas.api.types import is_numeric_dtype
 from dslr_lib.maths import normalize, mean
 from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
-from dslr_lib.opti_bonus import cross_validation
+from dslr_lib.opti_bonus import cross_validation, logreg_train
 from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
 
 # TODO: Place on dslr_libs
@@ -63,91 +63,6 @@ def prepare_dataset(
     ]]
     return matrix_y.values, matrix_x.values
 
-
-def regression_wrapper(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-    houses: int
-) -> ndarray[float]:
-    train_y = matrix_y.copy()
-    train_y[matrix_y != houses] = 0
-    train_y[matrix_y == houses] = 1
-    weights = gradient_descent(matrix_x, train_y, max_iter=1000, alpha=0.01)
-
-    return weights.flatten()
-
-# TODO: Place on dslr_lib or on bonus.
-def plot_boundaries(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-    matrix_t: ndarray[float],
-    houses: int
-):
-    b = matrix_t[-1]
-    w = matrix_t[0 : -1]
-    m = w[0] / w[1]
-    c = b / w[1]
-    xmin, xmax = matrix_x[:, 0].min() - 0.5, matrix_x[:, 0].max() + 0.5
-    ymin, ymax = matrix_y[:, 0].min() - 0.5, matrix_y[:, 0].max() + 0.5
-    xd = array([xmin, xmax])
-    yd = m * xd + c
-    # plot(xd, yd, 'k', ls='--', color=houses_colors[id_houses[houses]])
-    # fill_between(xd, yd, ymin, color=houses_colors[id_houses[houses]], label=id_houses[houses], alpha=0.2)
-
-
-def logreg_train(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
-    norm_x = matrix_x.copy()
-    norm_x = normalize(norm_x, matrix_x)
-
-
-    t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
-    t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
-    t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
-    t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
-
-    # TODO: Add parameter to eventually show it
-    # plot_boundaries(matrix_y, norm_x, t_ravenclaw, 0)
-    # plot_boundaries(matrix_y, norm_x, t_slytherin, 1)
-    # plot_boundaries(matrix_y, norm_x, t_gryffindor, 2)
-    # plot_boundaries(matrix_y, norm_x, t_hufflepuff, 3)
-
-    # full_df = hstack((matrix_y, norm_x))
-    # separated_house = {id_houses[house]: full_df[full_df[:, 0] == house][:, 1:] for house in range(0, 4)}
-    #
-    # # scatter(matrix_x[:, 0], matrix_x[:, 1])
-    # for house, h_df in zip(separated_house.keys(), separated_house.values()):
-    #     scatter(
-    #         h_df[:, 0],
-    #         h_df[:, 1],
-    #         color=houses_colors[house],
-    #         alpha=0.7,
-    #     )
-    # legend()
-    # show()
-
-    return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
-
-
-# TODO: Place on dslr_libs
-def generate_predictions(
-    matrix_x: ndarray,
-    matrix_t: tuple,
-) -> ndarray:
-    predictions = zeros((matrix_x.shape[0], 4))
-    for i in range(predictions.shape[1]):
-        predicted = predict_proba(matrix_x, matrix_t[i])
-        predictions[:, i] = predicted.ravel()
-    chosen_houses = zeros((matrix_x.shape[0], 1))
-    for i in range(chosen_houses.shape[0]):
-        chosen_houses[i][0] = argmax(predictions[i])
-    return chosen_houses
-
-
-from sklearn.metrics import accuracy_score
-
 def main():
     try:
         assert len(argv) == 2
@@ -171,7 +86,6 @@ def main():
             path = "/" + path
         path = project_path + path
         thetas_csv.to_csv(path, index=False)
-
 
 
     except AssertionError:
