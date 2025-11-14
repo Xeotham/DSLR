@@ -12,33 +12,9 @@ from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.maths import normalize, mean
-from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
+from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid, houses_id, id_houses, houses_colors
 from dslr_lib.errors import print_error
 from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
-
-# TODO: Place on dslr_libs
-houses_colors = {
-    "Ravenclaw": "c",
-    "Gryffindor": "r",
-    "Slytherin": "g",
-    "Hufflepuff": "y"
-}
-
-# TODO: Place on dslr_libs
-houses_id = {
-    "Ravenclaw": 0,
-    "Gryffindor": 1,
-    "Slytherin": 2,
-    "Hufflepuff": 3
-}
-
-# TODO: Place on dslr_libs
-id_houses = {
-    0: "Ravenclaw",
-    1: "Gryffindor",
-    2: "Slytherin",
-    3: "Hufflepuff",
-}
 
 # TODO: Place on dslr_lib
 def prepare_dataset(
@@ -75,25 +51,6 @@ def regression_wrapper(
 
     return weights.flatten()
 
-# TODO: Place on dslr_lib or on bonus.
-def plot_boundaries(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-    matrix_t: ndarray[float],
-    houses: int
-):
-    b = matrix_t[-1]
-    w = matrix_t[0 : -1]
-    m = w[0] / w[1]
-    c = b / w[1]
-    xmin, xmax = matrix_x[:, 0].min() - 0.5, matrix_x[:, 0].max() + 0.5
-    ymin, ymax = matrix_y[:, 0].min() - 0.5, matrix_y[:, 0].max() + 0.5
-    xd = array([xmin, xmax])
-    yd = m * xd + c
-    plot(xd, yd, 'k', ls='--', color=houses_colors[id_houses[houses]])
-    # fill_between(xd, yd, ymin, color=houses_colors[id_houses[houses]], label=id_houses[houses], alpha=0.2)
-
-
 def logreg_train(
     matrix_y: ndarray[int],
     matrix_x: ndarray[float],
@@ -104,26 +61,6 @@ def logreg_train(
     t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
     t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
-
-    # TODO: Add parameter to eventually show it
-    # plot_boundaries(matrix_y, norm_x, t_ravenclaw, 0)
-    # plot_boundaries(matrix_y, norm_x, t_slytherin, 1)
-    # plot_boundaries(matrix_y, norm_x, t_gryffindor, 2)
-    # plot_boundaries(matrix_y, norm_x, t_hufflepuff, 3)
-
-    # full_df = hstack((matrix_y, norm_x))
-    # separated_house = {id_houses[house]: full_df[full_df[:, 0] == house][:, 1:] for house in range(0, 4)}
-    #
-    # # scatter(matrix_x[:, 0], matrix_x[:, 1])
-    # for house, h_df in zip(separated_house.keys(), separated_house.values()):
-    #     scatter(
-    #         h_df[:, 0],
-    #         h_df[:, 1],
-    #         color=houses_colors[house],
-    #         alpha=0.7,
-    #     )
-    # legend()
-    # show()
 
     return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
 

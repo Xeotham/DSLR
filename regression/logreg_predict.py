@@ -12,23 +12,9 @@ from pandas.errors import EmptyDataError
 
 from dslr_lib.errors import print_error
 from dslr_lib.maths import normalize
-from dslr_lib.regressions import predict_proba
+from dslr_lib.regressions import predict_proba, houses_id, id_houses, houses_colors
 from regression.logreg_train import prepare_dataset
 
-
-houses_id = {
-    "Ravenclaw": 0,
-    "Gryffindor": 1,
-    "Slytherin": 2,
-    "Hufflepuff": 3
-}
-
-id_houses = {
-    0: "Ravenclaw",
-    1: "Gryffindor",
-    2: "Slytherin",
-    3: "Hufflepuff",
-}
 
 def load_parameters(
 ) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:

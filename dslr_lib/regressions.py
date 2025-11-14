@@ -1,6 +1,26 @@
 from numpy import ndarray, exp, c_, ones, zeros
 from numpy.linalg import norm
 
+houses_colors = {
+    "Ravenclaw": "c",
+    "Gryffindor": "r",
+    "Slytherin": "g",
+    "Hufflepuff": "y"
+}
+
+houses_id = {
+    "Ravenclaw": 0,
+    "Gryffindor": 1,
+    "Slytherin": 2,
+    "Hufflepuff": 3
+}
+
+id_houses = {
+    0: "Ravenclaw",
+    1: "Gryffindor",
+    2: "Slytherin",
+    3: "Hufflepuff",
+}
 
 def sigmoid(
     z: ndarray[float]
