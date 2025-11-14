@@ -89,6 +89,8 @@ def predict_proba(
     Returns:
         ndarray: A matrix of probability
     """
+
+
     matrix_xb = c_[ones((matrix_x.shape[0], 1)), matrix_x]
     return sigmoid(matrix_xb @ matrix_t)
 

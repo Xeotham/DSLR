@@ -1,7 +1,6 @@
 #!../.venv/bin/python
 import sys
 from sys import argv
-from numpy.ma.extras import hstack
 
 
 sys.path.insert(1, "..")
@@ -15,6 +14,7 @@ from pandas.api.types import is_numeric_dtype
 from dslr_lib.maths import normalize, mean
 from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid
 from dslr_lib.errors import print_error
+from dslr_lib.opti_bonus import cross_validation
 from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
 
 # TODO: Place on dslr_libs
@@ -91,7 +91,7 @@ def plot_boundaries(
     ymin, ymax = matrix_y[:, 0].min() - 0.5, matrix_y[:, 0].max() + 0.5
     xd = array([xmin, xmax])
     yd = m * xd + c
-    plot(xd, yd, 'k', ls='--', color=houses_colors[id_houses[houses]])
+    # plot(xd, yd, 'k', ls='--', color=houses_colors[id_houses[houses]])
     # fill_between(xd, yd, ymin, color=houses_colors[id_houses[houses]], label=id_houses[houses], alpha=0.2)
 
 
@@ -101,6 +101,8 @@ def logreg_train(
 ) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
     norm_x = matrix_x.copy()
     norm_x = normalize(norm_x, matrix_x)
+
+
     t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
     t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
@@ -144,6 +146,8 @@ def generate_predictions(
     return chosen_houses
 
 
+from sklearn.metrics import accuracy_score
+
 def main():
     try:
         assert len(argv) == 2
@@ -152,14 +156,16 @@ def main():
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
-        print("thetas_weights:", thetas_weights)
+        p_score = cross_validation(matrix_x, matrix_y)
+        print(f"Accuracy: {p_score}")
+
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
             dtype=float,
             columns=["ravenclaw", "slytherin", "gryffindor", "hufflepuff"]
         )
         project_path = str(__file__)
-        project_path = project_path[:-len("/logreg_train.py")]
+        project_path = project_path[:-len("/logreg_train_bonus.py")]
         path = "../datasets/weights.csv"
         if not path.startswith('/'):
             path = "/" + path
