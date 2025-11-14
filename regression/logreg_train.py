@@ -1,13 +1,12 @@
 #!../.venv/bin/python
 import sys
-from sys import argv
-from numpy.ma.extras import hstack
-
-
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 sys.path.insert(3, "../visualization")
 
+
+from sys import argv
+from numpy.ma.extras import hstack
 from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError

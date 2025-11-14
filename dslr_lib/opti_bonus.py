@@ -46,10 +46,21 @@ def generate_predictions(
     return chosen_houses
 
 def cross_validation(
-    X,
-    y,
-    k=5,
-):
+    X: ndarray,
+    y: ndarray,
+    k: int = 5
+) -> float:
+    """
+    Perform k-fold cross-validation for a multinomial logistic regression model.
+
+    Args:
+        X (ndarray): Input feature matrix of shape (n_samples, n_features).
+        y (ndarray): Target labels of shape (n_samples,).
+        k (int, optional): Number of folds for cross-validation. Defaults to 5.
+
+    Returns:
+        float: Average accuracy of the model across all folds.
+    """
     n_samples = X.shape[0]
     fold_size = n_samples // k
     indices = arange(n_samples)
@@ -57,7 +68,6 @@ def cross_validation(
     X_shuffled = X[indices]
     y_shuffled = y[indices]
     accuracies = []
-
     for i in range(k):
         # Split into training and validation sets
         val_start = i * fold_size
@@ -66,13 +76,9 @@ def cross_validation(
         y_val = y_shuffled[val_start:val_end]
         X_train = concatenate([X_shuffled[:val_start], X_shuffled[val_end:]])
         y_train = concatenate([y_shuffled[:val_start], y_shuffled[val_end:]])
-
         # Train multinomial logistic regression
         weights = logreg_train(y_train, X_train)
-
         y_pred = generate_predictions(X_val, weights)
         accuracy = mean(y_pred == y_val)
         accuracies.append(accuracy)
-
     return mean(accuracies)
-
