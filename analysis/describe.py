@@ -11,7 +11,7 @@ from sys import argv
 from dslr_lib.errors import print_error
 from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
 
-def describe(df: DataFrame):
+def describe(df: DataFrame) -> DataFrame:
     oper_lst = [count, mean, var, std, min, max, Q1, Q2, Q3]
     oper_names = ["Total count", "Count", "Mean", "Variance", "Std Dev", "Min", "Max", "25%", "50%", "75%", "NaN Count"]
     describe_arr = array([[total_count(df[i]) for i in df.keys()]])
@@ -22,6 +22,7 @@ def describe(df: DataFrame):
                                                  columns={i:name for i, name in enumerate(df.keys())})
     print(describe_df)
     print(df.describe())
+    return describe_df, df.describe()
 
 
 def main():

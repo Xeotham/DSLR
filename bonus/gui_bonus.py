@@ -1,25 +1,56 @@
 #!../.venv/bin/python
 import sys
+
+
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 
-from re import search, split, sub, match
-from io import StringIO
 from subprocess import run
-from builders.button_builder import ButtonBuilder
-from customtkinter import *
-from dslr_lib.errors import print_error
 from pandas import read_csv
+from customtkinter import *
+import customtkinter as ctk
+from CTkTable import *
+from os import devnull
+from re import sub
+from contextlib import redirect_stdout
 
+from builders.button_builder import ButtonBuilder
+from dslr_lib.errors import print_error
+from analysis.describe import describe
+from dslr_lib.threads_bonus import threaded
+
+ctk.DrawEngine.preferred_drawing_method = "circle_shapes"
 app = CTk()
 button_builder = ButtonBuilder(app)
 
+HAS_DESCRIBED = False
+WIDTH=700
+HEIGHT=150
+CORNER_RADIUS=5
+COURSES = [
+    "Arithmancy",
+    "Astronomy",
+    "Herbology",
+    "Defense Against the Dark Arts",
+    "Divination",
+    "Muggle Studies",
+    "Ancient Runes",
+    "History of Magic",
+    "Transfiguration",
+    "Potions",
+    "Care of Magical Creatures",
+    "Charms",
+    "Flying",
+    "All"
+]
 
-def execute_script(path: str, args: str, stdout: str):
+def execute_script(path: str, args: str):
     absolute_path = __file__.replace("/bonus/./gui_bonus.py", "")
     absolute_path += path
-    with open(stdout, "w") as f:
-        run([absolute_path, args], stdout=f)
+    if len(args) == 0:
+        run([absolute_path])
+    else:
+        run([absolute_path, args])
 
 
 def create_exit_button():
@@ -38,44 +69,97 @@ def create_exit_button():
 
 
 def create_tabs():
-    tabview = CTkTabview(app)
+    def tabview_callback():
+        global HAS_DESCRIBED
+        match tabview.get():
+            case "Analysis":
+                if HAS_DESCRIBED:
+                    app.geometry(f"{WIDTH}x800")
+                else:
+                    app.geometry(f"{WIDTH}x{HEIGHT}")
+            case "Visuals":
+                app.geometry(f"{WIDTH + 100}x{HEIGHT * 3.5}")
+            case _:
+                app.geometry(f"{WIDTH}x{HEIGHT}")
+        pass
+
+    tabview = CTkTabview(
+        app,
+        command=tabview_callback,
+        corner_radius=5,
+    )
+
     tabview.pack(
         padx=10,
         pady=10,
         fill="both",
-        expand=1
+        expand=True
     )
-    tabview.add("Analysis")
-    tabview.add("Visuals")
-    tabview.add("Logreg")
-    tabview.add("Bonuses")
+    analysis_frame = tabview.add("Analysis")
+    visuals_frame = tabview.add("Visuals")
+    logreg_frame = tabview.add("Logreg")
+    bonuses_frame = tabview.add("Bonuses")
     tabview.set("Analysis")
     create_analysis_tab(tabview)
+    create_visuals_tab(tabview)
 
 
 def create_analysis_tab(tabs: CTkTabview):
+    own_table = CTkTable(
+        master=tabs.tab("Analysis"),
+        row=11 + 1,
+        column=5 + 1,
+        border_color="#404040",
+        border_width=3,
+        corner_radius=CORNER_RADIUS / 2,
+    )
+    panda_table = CTkTable(
+        master=tabs.tab("Analysis"),
+        row=8 + 1,
+        column=5 + 1,
+        border_color="#404040",
+        border_width=3,
+        corner_radius=CORNER_RADIUS / 2,
+    )
+
     def describe_dataset():
-        execute_script(
-            "/analysis/describe.py",
-            "../datasets/dataset_train.csv",
-            ".analysis"
+        df = read_csv("../datasets/dataset_train.csv")  \
+              .drop("Index", axis=1)              \
+              .select_dtypes(include="number")
+        with redirect_stdout(open(devnull, "w")):
+            own_describe, pd_describe = describe(df)
+        cols = ["Astronomy", "Herbology", "Divination", "Potions", "Charms"]
+        own_describe = own_describe[cols].round(2)
+        own_values = [[""] + cols]
+        for idx, row in own_describe.iterrows():
+            own_values.append([idx] + row.values.tolist())
+        pd_describe = pd_describe[cols].round(2)
+        pd_values = [[""] + cols]
+        for idx, row in pd_describe.iterrows():
+            pd_values.append([idx] + row.values.tolist())
+        own_table.configure(
+            values=own_values
         )
-        def extract_tables():
-            with open(".analysis") as f:
-                buffer = f.read()
-            matched = search('\n', buffer)
-            colnum = int(buffer[search(" x ", buffer).start() + 3:search(" x ", buffer).start() + 6])
-            
-            print(colnum)
-            buffer = buffer[matched.start() + 1::]
-            print(buffer)
-            # return table1, table2
-        describe_output, pandas_output = extract_tables()
-        # print(describe_output)
-        # print(pandas_output)
-
-
-
+        panda_table.configure(
+            values=pd_values
+        )
+        own_table.pack(
+            side="top",
+            expand=False,
+            padx=20,
+            pady=10,
+            anchor="n"
+        )
+        panda_table.pack(
+            side="top",
+            expand=False,
+            padx=20,
+            pady=10,
+            anchor="n"
+        )
+        global HAS_DESCRIBED
+        HAS_DESCRIBED = True
+        app.geometry(f"{WIDTH}x800")
 
     tab_button_builder = ButtonBuilder(tabs.tab("Analysis"))
     tab_button_builder.new()            \
@@ -84,14 +168,99 @@ def create_analysis_tab(tabs: CTkTabview):
         .fg_color("#a1a61f")            \
         .hover(True, "#6d7014")         \
         .command(describe_dataset)      \
+        .corner_radius(CORNER_RADIUS)   \
         .pack(
             side="top",
-            padx=5,
-            pady=5,
+            anchor="n",
+            pady=10,
         )
 
+
+def create_visuals_tab(tabs: CTkTabview):
+    parent = tabs.tab("Visuals")
+
+    wrapper = CTkFrame(parent, fg_color="transparent")
+    wrapper.pack(fill="x", pady=20)
+
+    button_row = CTkFrame(wrapper, fg_color="transparent")
+    button_row.pack(pady=10)
+
+    #
+    entry = CTkEntry(wrapper, placeholder_text="Plot to show...")
+    entry.configure(corner_radius=5, font=("font", 13), width=250)
+    entry.pack(pady=10)
+
+    def show_plot(plot: str):
+        script_name = sub('([a-z])([A-Z])', r'\1 \2', plot)
+        script_name = script_name.lower().replace(' ', '_')
+        script_name += ".py"
+        script_name = "/visualization/" + script_name
+
+        @threaded
+        def generate_callback():
+            parameters = entry.get()
+            execute_script(script_name, parameters)
+
+
+        return generate_callback
+
+
+    def add_top_button(text, callback):
+        tab_button_builder = ButtonBuilder(button_row)
+        tab_button_builder.new()        \
+            .text(text)                 \
+            .size(110, 35)              \
+            .fg_color("#a1a61f")        \
+            .hover(True, "#6d7014")     \
+            .corner_radius(5)           \
+            .command(show_plot(text))   \
+            .pack(
+                side="left",
+                padx=10
+            )
+
+
+    add_top_button("Histogram", show_plot("Histogram"))
+    add_top_button("Scatter Plot", show_plot("Scatter Plot"))
+    add_top_button("Pair Plot", show_plot("Pair Plot"))
+
+    grid_frame = CTkFrame(wrapper, fg_color="transparent")
+    grid_frame.pack(pady=10)
+
+    def generate_button_callback(name: str):
+        def callback():
+            entry.delete(0, len(entry.get()))
+            entry.insert(0, name)
+
+
+        return callback
+
+    columns = 3
+    for i, course in enumerate(COURSES):
+        r = i // columns
+        c = i % columns
+
+        tab_button_builder = ButtonBuilder(grid_frame)
+        tab_button_builder.new()                        \
+            .text(course)                               \
+            .size(120, 35)                              \
+            .fg_color("#1f7ba6")                        \
+            .hover(True, "#145370")                     \
+            .corner_radius(5)                           \
+            .command(generate_button_callback(course))  \
+            .grid(
+                row=r,
+                column=c,
+                padx=10,
+                pady=10,
+            )
+
+    for col in range(columns):
+        grid_frame.grid_columnconfigure(col, weight=1)
+
+
 def init_app():
-    app.geometry("800x600")
+    app.geometry(f"{WIDTH}x{HEIGHT}")
     create_exit_button()
     create_tabs()
 
