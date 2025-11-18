@@ -15,7 +15,7 @@ from dslr_lib.maths import normalize
 from dslr_lib.errors import print_error
 from dslr_lib.opti_bonus import logreg_train
 from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
-from logreg_train_bonus import prepare_dataset
+from regression.logreg_train import prepare_dataset
 
 # TODO: Place on dslr_libs
 houses_colors = {

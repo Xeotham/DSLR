@@ -2,6 +2,7 @@ import sys
 from multiprocessing.managers import ValueProxy
 from typing import Any
 
+import numpy as np
 from numpy.ma.extras import hstack
 
 sys.path.append('../')
@@ -32,6 +33,8 @@ def logreg_train(
 ) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
     norm_x = matrix_x.copy()
     norm_x = normalize(norm_x, matrix_x)
+    norm_x = norm_x
+    matrix_y = matrix_y
     t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
     t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
     t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
@@ -132,7 +135,6 @@ class FeaturesSelector:
 
     def find_best_features(self):
         # TODO: Multi thread avec NPROC
-        # print(cpu_count())
         @threaded
         def test_features_wrapper(main_feature: ndarray, f_test: ndarray, queue: Queue, is_finished):
             queue.put(self.__test_features(main_feature, f_test, is_finished))
