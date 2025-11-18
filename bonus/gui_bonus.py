@@ -1,7 +1,5 @@
 #!../.venv/bin/python
 import sys
-
-
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 
@@ -25,7 +23,7 @@ button_builder = ButtonBuilder(app)
 
 HAS_DESCRIBED = False
 WIDTH=700
-HEIGHT=150
+HEIGHT=200
 CORNER_RADIUS=5
 COURSES = [
     "Arithmancy",
@@ -44,13 +42,16 @@ COURSES = [
     "All"
 ]
 
-def execute_script(path: str, args: str):
+def execute_script(path: str, args: list[str] | None = None):
     absolute_path = __file__.replace("/bonus/./gui_bonus.py", "")
     absolute_path += path
-    if len(args) == 0:
-        run([absolute_path])
+    command = str(absolute_path)
+    if args:
+        for arg in args:
+            command += " | " + str(arg)
+        run(command.split(" | "))
     else:
-        run([absolute_path, args])
+        run(command)
 
 
 def create_exit_button():
@@ -78,7 +79,7 @@ def create_tabs():
                 else:
                     app.geometry(f"{WIDTH}x{HEIGHT}")
             case "Visuals":
-                app.geometry(f"{WIDTH + 100}x{HEIGHT * 3.5}")
+                app.geometry(f"{WIDTH + 100}x{HEIGHT * 2.5}")
             case _:
                 app.geometry(f"{WIDTH}x{HEIGHT}")
         pass
@@ -88,20 +89,21 @@ def create_tabs():
         command=tabview_callback,
         corner_radius=5,
     )
-
     tabview.pack(
         padx=10,
         pady=10,
         fill="both",
-        expand=True
+        expand=True,
     )
+
     analysis_frame = tabview.add("Analysis")
     visuals_frame = tabview.add("Visuals")
     logreg_frame = tabview.add("Logreg")
-    bonuses_frame = tabview.add("Bonuses")
+    # bonuses_frame = tabview.add("Bonuses")
     tabview.set("Analysis")
     create_analysis_tab(tabview)
     create_visuals_tab(tabview)
+    create_logreg_tab(tabview)
 
 
 def create_analysis_tab(tabs: CTkTabview):
@@ -111,7 +113,7 @@ def create_analysis_tab(tabs: CTkTabview):
         column=5 + 1,
         border_color="#404040",
         border_width=3,
-        corner_radius=CORNER_RADIUS / 2,
+        corner_radius=CORNER_RADIUS // 2,
     )
     panda_table = CTkTable(
         master=tabs.tab("Analysis"),
@@ -119,7 +121,7 @@ def create_analysis_tab(tabs: CTkTabview):
         column=5 + 1,
         border_color="#404040",
         border_width=3,
-        corner_radius=CORNER_RADIUS / 2,
+        corner_radius=CORNER_RADIUS // 2,
     )
 
     def describe_dataset():
@@ -177,18 +179,24 @@ def create_analysis_tab(tabs: CTkTabview):
 
 
 def create_visuals_tab(tabs: CTkTabview):
-    parent = tabs.tab("Visuals")
-
-    wrapper = CTkFrame(parent, fg_color="transparent")
+    wrapper = CTkFrame(tabs.tab("Visuals"), fg_color="transparent")
     wrapper.pack(fill="x", pady=20)
 
     button_row = CTkFrame(wrapper, fg_color="transparent")
     button_row.pack(pady=10)
+    grid_frame = CTkFrame(wrapper, fg_color="transparent")
+    checkbox = CTkCheckBox(grid_frame, text="Replace")
+    def checkbox_callback():
+        checkbox.configure(text="Replace")
+        if checkbox.get():
+            checkbox.configure(text="Append")
+    checkbox.configure(command=checkbox_callback)
 
     #
     entry = CTkEntry(wrapper, placeholder_text="Plot to show...")
     entry.configure(corner_radius=5, font=("font", 13), width=250)
-    entry.pack(pady=10)
+    entry.pack(padx=10, pady=10, expand=1, fill="both")
+    grid_frame.pack(pady=10)
 
     def show_plot(plot: str):
         script_name = sub('([a-z])([A-Z])', r'\1 \2', plot)
@@ -198,14 +206,17 @@ def create_visuals_tab(tabs: CTkTabview):
 
         @threaded
         def generate_callback():
-            parameters = entry.get()
-            execute_script(script_name, parameters)
+            parameters = entry.get().split(', ')
+            if len(entry.get()) != 0:
+                execute_script(script_name, parameters)
+            else:
+                execute_script(script_name)
 
 
         return generate_callback
 
 
-    def add_top_button(text, callback):
+    def add_top_button(text):
         tab_button_builder = ButtonBuilder(button_row)
         tab_button_builder.new()        \
             .text(text)                 \
@@ -220,17 +231,20 @@ def create_visuals_tab(tabs: CTkTabview):
             )
 
 
-    add_top_button("Histogram", show_plot("Histogram"))
-    add_top_button("Scatter Plot", show_plot("Scatter Plot"))
-    add_top_button("Pair Plot", show_plot("Pair Plot"))
-
-    grid_frame = CTkFrame(wrapper, fg_color="transparent")
-    grid_frame.pack(pady=10)
+    add_top_button("Histogram")
+    add_top_button("Scatter Plot")
+    add_top_button("Pair Plot")
 
     def generate_button_callback(name: str):
         def callback():
-            entry.delete(0, len(entry.get()))
-            entry.insert(0, name)
+            start = 0
+            if not checkbox.get(): # Replace
+                entry.delete(0, len(entry.get()))
+            else: # Append
+                start = len(entry.get()) + 2
+                if start != 2:
+                    entry.insert(start - 2, ", ")
+            entry.insert(start, name)
 
 
         return callback
@@ -254,9 +268,50 @@ def create_visuals_tab(tabs: CTkTabview):
                 padx=10,
                 pady=10,
             )
+    checkbox.grid(row=4, column=2)
 
     for col in range(columns):
         grid_frame.grid_columnconfigure(col, weight=1)
+
+
+def create_logreg_tab(tabs: CTkTabview):
+    wrapper = CTkFrame(tabs.tab("Logreg"), fg_color="transparent")
+    wrapper.pack(fill="x", pady=20)
+
+    button_row = CTkFrame(wrapper, fg_color="transparent")
+    button_row.pack(pady=10)
+
+    def generate_logreg_callback(action: str):
+        dataset = "../datasets/dataset_train.csv"
+        if action.lower() == "predict":
+            dataset = "../datasets/dataset_test.csv"
+        def callback():
+            script = "/regression/logreg_" + action.lower() + ".py"
+            execute_script(script, [dataset])
+
+
+        return callback
+
+
+
+
+    def add_top_button(text):
+        tab_button_builder = ButtonBuilder(button_row)
+        tab_button_builder.new()                        \
+            .text(text)                                 \
+            .size(110, 35)                              \
+            .fg_color("#a1a61f")                        \
+            .hover(True, "#6d7014")                     \
+            .corner_radius(5)                           \
+            .command(generate_logreg_callback(text))    \
+            .pack(
+                side="left",
+                padx=10
+            )
+
+    add_top_button("Train")
+    add_top_button("Predict")
+
 
 
 def init_app():
@@ -269,6 +324,7 @@ def main():
     try:
         init_app()
         app.mainloop()
+
     except Exception as err:
         print_error(f"Unexpected error: {err}")
 
