@@ -39,6 +39,8 @@ def show_plots(df: DataFrame, to_show: list) -> None:
         None: Displays the scatter plot grid using matplotlib.
     """
 
+    assert len(to_show) >=2, error["ARG_ERR"]
+
     fg, axs = subplots(len(to_show), len(to_show))
 
     for i, x in enumerate(to_show):

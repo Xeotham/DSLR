@@ -1,20 +1,19 @@
 #!../.venv/bin/python
 import sys
+from sys import argv
+
 sys.path.insert(1, "..")
 sys.path.insert(2, ".")
 sys.path.insert(3, "../visualization")
 
-
-from sys import argv
-from numpy.ma.extras import hstack
 from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
-from dslr_lib.maths import normalize, mean
-from dslr_lib.regressions import gradient_descent, predict, predict_proba, sigmoid, houses_id, id_houses, houses_colors
 from dslr_lib.errors import print_error
-from matplotlib.pyplot import figure, plot, scatter, show, legend, xlim, ylim, fill_between
+from dslr_lib.opti_bonus import cross_validation, logreg_train, FeaturesSelector
+from dslr_lib.regressions import houses_id, id_houses, houses_colors
+
 
 # TODO: Place on dslr_lib
 def prepare_dataset(
@@ -32,53 +31,23 @@ def prepare_dataset(
     if "Hogwarts House" in df.columns:
         matrix_y = df["Hogwarts House"].map(houses_id)
     matrix_x = df.select_dtypes(include="number")
-    matrix_x = matrix_x[[
-        "Herbology",
-        "Defense Against the Dark Arts"
-    ]]
     return matrix_y.values, matrix_x.values
 
+def features_name(features: ndarray, df: DataFrame) -> list:
+    names = []
 
-def regression_wrapper(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-    houses: int
-) -> ndarray[float]:
-    train_y = matrix_y.copy()
-    train_y[matrix_y != houses] = 0
-    train_y[matrix_y == houses] = 1
-    weights = gradient_descent(matrix_x, train_y, max_iter=1000, alpha=0.01)
+    def cmp_features(cmp_1, cmp_2):
+        for v_1, v_2 in zip(cmp_1, cmp_2):
+            if v_1 != v_2:
+                return False
+        return True
 
-    return weights.flatten()
-
-def logreg_train(
-    matrix_y: ndarray[int],
-    matrix_x: ndarray[float],
-) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
-    norm_x = matrix_x.copy()
-    norm_x = normalize(norm_x, matrix_x)
-    t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
-    t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
-    t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
-    t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
-
-    return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
-
-
-# TODO: Place on dslr_libs
-def generate_predictions(
-    matrix_x: ndarray,
-    matrix_t: tuple,
-) -> ndarray:
-    predictions = zeros((matrix_x.shape[0], 4))
-    for i in range(predictions.shape[1]):
-        predicted = predict_proba(matrix_x, matrix_t[i])
-        predictions[:, i] = predicted.ravel()
-    chosen_houses = zeros((matrix_x.shape[0], 1))
-    for i in range(chosen_houses.shape[0]):
-        chosen_houses[i][0] = argmax(predictions[i])
-    return chosen_houses
-
+    for feature in features.T:
+        for name, values in zip(df.keys(), df.values.T):
+            if cmp_features(feature, values):
+                names.append(name)
+                break
+    return names
 
 def main():
     try:
@@ -88,20 +57,25 @@ def main():
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
-        print("thetas_weights:", thetas_weights)
+        features_select = FeaturesSelector(matrix_x, matrix_y, 4, 0.98)
+        matrix_x = features_select.find_best_features()
+        print(features_name(matrix_x, df.select_dtypes(include="number")))
+
+        p_score = cross_validation(matrix_x, matrix_y)
+        print(f"Accuracy: {p_score}")
+
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
             dtype=float,
             columns=["ravenclaw", "slytherin", "gryffindor", "hufflepuff"]
         )
         project_path = str(__file__)
-        project_path = project_path[:-len("/logreg_train.py")]
+        project_path = project_path[:-len("/logreg_train_bonus.py")]
         path = "../datasets/weights.csv"
         if not path.startswith('/'):
             path = "/" + path
         path = project_path + path
         thetas_csv.to_csv(path, index=False)
-
 
 
     except AssertionError:
