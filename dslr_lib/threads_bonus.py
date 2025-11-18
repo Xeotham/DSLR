@@ -1,4 +1,4 @@
-from threading import Thread
+from multiprocessing import Process
 
 
 def threaded(func):
@@ -8,7 +8,7 @@ def threaded(func):
     created for the function
     """
     def wrapper(*args, **kwargs):
-        thread = Thread(target=func, args=args)
+        thread = Process(target=func, args=args, daemon=True)
         thread.start()
         return thread
     return wrapper

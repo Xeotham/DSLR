@@ -1,10 +1,18 @@
 import sys
+from multiprocessing.managers import ValueProxy
+from typing import Any
+
+from numpy.ma.extras import hstack
+
 sys.path.append('../')
 
-from numpy import ndarray, argmin, abs, unique, stack, sum, mean, argmax, zeros_like, arange, concatenate, zeros
+from multiprocessing import cpu_count, Value, Queue, Lock, Manager
+from numpy import ndarray, array, argmin, abs, unique, stack, sum, mean, argmax, zeros_like, arange, concatenate, zeros, vstack
 from numpy.random import shuffle
 from dslr_lib.regressions import gradient_descent, predict_proba
 from dslr_lib.maths import normalize
+from dslr_lib.threads_bonus import threaded
+
 
 def regression_wrapper(
     matrix_y: ndarray[int],
@@ -83,4 +91,102 @@ def cross_validation(
         accuracies.append(accuracy)
     return mean(accuracies)
 
-def features
+class FeaturesSelector:
+    matrix_X: ndarray
+    matrix_y: ndarray
+    f_number: int
+    acc_tol: float
+
+    def __init__(self, matrix_x, matrix_y, f_number, acc_tol):
+        self.matrix_X = matrix_x
+        self.matrix_y = matrix_y
+        self.f_number = f_number
+        self.acc_tol = acc_tol
+
+
+    def __test_features(self, main_feature: ndarray, f_test: ndarray, is_finished):
+        best_score = float("-inf")
+        best_features = None
+
+        for i in range(0, main_feature.shape[1]):
+            if is_finished.get():
+                return best_score, best_features
+            if f_test is None:
+                actual_features = array([main_feature[:, i]]).T
+            else:
+                actual_features = array(hstack((f_test, main_feature[:, i].reshape(main_feature.shape[0], 1))))
+            if actual_features.shape[1] < self.f_number and i + 1 < main_feature.shape[1]:
+                tmp_score, tmp_features = self.__test_features(main_feature[:, i + 1:], actual_features, is_finished)
+                if tmp_score > best_score:
+                    best_score = tmp_score
+                    best_features = tmp_features
+                continue
+
+            actual_score = cross_validation(actual_features, self.matrix_y)
+            if actual_score > best_score:
+                if actual_score >= self.acc_tol:
+                    is_finished.set(True)
+                best_score = actual_score
+                best_features = actual_features
+        return best_score, best_features
+
+    def find_best_features(self):
+        # TODO: Multi thread avec NPROC
+        # print(cpu_count())
+        @threaded
+        def test_features_wrapper(main_feature: ndarray, f_test: ndarray, queue: Queue, is_finished):
+            queue.put(self.__test_features(main_feature, f_test, is_finished))
+
+        thread_iter = (self.matrix_X.shape[1] / cpu_count()).__ceil__()
+        threads = []
+        result = []
+        best_score = float("-inf")
+        best_features = None
+
+        with Manager() as manager:
+            q = manager.Queue()
+            finished = manager.Value('B', False)
+
+            for i in range(0, thread_iter):
+                for j in range(cpu_count()):
+                    if (i * thread_iter) + j > self.matrix_X.shape[1] - 1:
+                        break
+                    threads.append(
+                        test_features_wrapper(
+                            self.matrix_X[:, (i * thread_iter) + j + 1:],
+                            array([self.matrix_X[:, (i * thread_iter) + j]]).T,
+                            q,
+                            finished
+                        )
+                    )
+                for thread in threads:
+                    thread.join()
+                    result.append(q.get())
+
+        for score, features in result:
+            if score > best_score:
+                best_score = score
+                best_features = features
+        return best_features
+
+# def test_features(
+#     matrix_x: ndarray,
+#     f_number: int,
+#     current_number: int,
+#     base_feature: ndarray,
+#     *args
+# ):
+#     if current_number < f_number:
+#         return test_features(matrix_x, f_number, base_feature, *args, )
+#
+#     return None
+#
+#     # test_x = matrix_x[:, 0].copy()
+#
+#
+# def features_selector(
+#     X: ndarray,
+#     y: ndarray,
+#     f_number: int = 3
+# ):
+#     test_features(X, f_number)

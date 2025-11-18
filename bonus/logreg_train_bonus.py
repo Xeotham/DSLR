@@ -11,7 +11,7 @@ from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.errors import print_error
-from dslr_lib.opti_bonus import cross_validation, logreg_train
+from dslr_lib.opti_bonus import cross_validation, logreg_train, FeaturesSelector
 from dslr_lib.regressions import houses_id, id_houses, houses_colors
 
 
@@ -31,11 +31,23 @@ def prepare_dataset(
     if "Hogwarts House" in df.columns:
         matrix_y = df["Hogwarts House"].map(houses_id)
     matrix_x = df.select_dtypes(include="number")
-    matrix_x = matrix_x[[
-        "Herbology",
-        "Defense Against the Dark Arts"
-    ]]
     return matrix_y.values, matrix_x.values
+
+def features_name(features: ndarray, df: DataFrame) -> list:
+    names = []
+
+    def cmp_features(cmp_1, cmp_2):
+        for v_1, v_2 in zip(cmp_1, cmp_2):
+            if v_1 != v_2:
+                return False
+        return True
+
+    for feature in features.T:
+        for name, values in zip(df.keys(), df.values.T):
+            if cmp_features(feature, values):
+                names.append(name)
+                break
+    return names
 
 def main():
     try:
@@ -44,6 +56,10 @@ def main():
         matrix_y, matrix_x = prepare_dataset(df)
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
+
+        features_select = FeaturesSelector(matrix_x, matrix_y, 4, 0.98)
+        matrix_x = features_select.find_best_features()
+        print(features_name(matrix_x, df.select_dtypes(include="number")))
 
         p_score = cross_validation(matrix_x, matrix_y)
         print(f"Accuracy: {p_score}")
