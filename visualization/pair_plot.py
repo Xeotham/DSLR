@@ -84,10 +84,11 @@ def main() -> None:
         if len(argv) == 1:
             subjects_list = df.select_dtypes(include="number").columns.tolist()
         else:
+            assert len(argv) >= 3, "NOT_ENOUGH_PARAM"
             subjects_list = argv[1:]
         show_plots(df, subjects_list)
     except AssertionError as msg:
-        print(str(msg))
+        print_error(msg)
         return
     except FileNotFoundError:
         print_error("FileNotFoundError: provided file not found.")

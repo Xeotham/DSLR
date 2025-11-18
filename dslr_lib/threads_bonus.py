@@ -13,6 +13,3 @@ def threaded(func):
         return thread
     return wrapper
 
-@threaded
-def test():
-    print("hello")
