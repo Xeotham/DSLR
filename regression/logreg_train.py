@@ -88,7 +88,7 @@ def main():
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
-        print("thetas_weights:", thetas_weights)
+        # print("thetas_weights:", thetas_weights)
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
             dtype=float,

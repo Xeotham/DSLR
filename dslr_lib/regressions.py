@@ -1,4 +1,4 @@
-from numpy import ndarray, exp, c_, ones, zeros
+from numpy import ndarray, exp, c_, ones, zeros, empty_like
 from numpy.linalg import norm
 
 houses_colors = {
@@ -23,8 +23,8 @@ id_houses = {
 }
 
 def sigmoid(
-    z: ndarray[float]
-) -> ndarray[float]:
+    z: ndarray
+) -> ndarray:
     """
     Applies a sigmoid function h to each value of the matrix z,
     where h(x) = 1 / (1 + e^(x))
@@ -35,14 +35,21 @@ def sigmoid(
     Returns:
         ndarray: A new matrix where each element v has been mapped to h(v)
     """
-    return 1 / (1 + exp(-z))
+    out = empty_like(z)
+    pos_mask = (z >= 0)
+    out[pos_mask] = 1 / (1 + exp(-z[pos_mask]))
+    neg_mask = ~pos_mask
+    exp_z = exp(z[neg_mask])
+    out[neg_mask] = exp_z / (1 + exp_z)
+
+    return out
 
 
 def calculate_gradient(
-    matrix_x: ndarray[float],
-    matrix_y: ndarray[float],
-    matrix_t: ndarray[float],
-) -> ndarray[float]:
+    matrix_x: ndarray,
+    matrix_y: ndarray,
+    matrix_t: ndarray,
+) -> ndarray:
     """
     Calculates the gradients in order to then minimizes the loss function
     of our logistic regression
@@ -61,12 +68,12 @@ def calculate_gradient(
 
 
 def gradient_descent(
-    matrix_x: ndarray[float],
-    matrix_y: ndarray[float],
+    matrix_x: ndarray,
+    matrix_y: ndarray,
     alpha: float =0.1,
     max_iter: int=100,
     tol: float=1e-7,
-) -> ndarray[float]:
+) -> ndarray:
     """
     Minimizes the log loss function in order using the gradient
     descent algorithm
@@ -95,9 +102,9 @@ def gradient_descent(
 
 
 def predict_proba(
-    matrix_x: ndarray[float],
-    matrix_t: ndarray[float],
-) -> ndarray[float]:
+    matrix_x: ndarray,
+    matrix_t: ndarray,
+) -> ndarray:
     """
     Uses a matrix of weight parameters and an input vector of features
     to predict the chance of each values of being what we're classifying
@@ -116,8 +123,8 @@ def predict_proba(
 
 
 def predict(
-    matrix_x: ndarray[float],
-    matrix_t: ndarray[float],
+    matrix_x: ndarray,
+    matrix_t: ndarray,
     threshold: float = 0.5
 ) -> ndarray[bool]:
     """
