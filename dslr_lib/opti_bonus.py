@@ -1,13 +1,10 @@
 import sys
-from multiprocessing.managers import ValueProxy
 from typing import Any
-
-import numpy as np
 from numpy.ma.extras import hstack
 
 sys.path.append('../')
 
-from multiprocessing import cpu_count, Value, Queue, Lock, Manager
+from multiprocessing import cpu_count, Queue, Manager, Pool
 from numpy import ndarray, array, argmin, abs, unique, stack, sum, mean, argmax, zeros_like, arange, concatenate, zeros, vstack
 from numpy.random import shuffle
 from dslr_lib.regressions import gradient_descent, predict_proba
@@ -30,15 +27,27 @@ def regression_wrapper(
 def logreg_train(
     matrix_y: ndarray[int],
     matrix_x: ndarray[float],
+    multi_process: bool = False
 ) -> tuple[ndarray[float], ndarray[float], ndarray[float], ndarray[float]]:
     norm_x = matrix_x.copy()
     norm_x = normalize(norm_x, matrix_x)
     norm_x = norm_x
     matrix_y = matrix_y
-    t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
-    t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
-    t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
-    t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
+
+    if not multi_process:
+        with Pool(4) as pool:
+            res = [pool.apply_async(regression_wrapper, (matrix_y, norm_x, i)) for i in range(4)]
+            t_ravenclaw = res[0].get()
+            t_slytherin = res[1].get()
+            t_gryffindor = res[2].get()
+            t_hufflepuff = res[3].get()
+            pool.close()
+            pool.join()
+    else:
+        t_ravenclaw = regression_wrapper(matrix_y, norm_x, 0)
+        t_slytherin = regression_wrapper(matrix_y, norm_x, 1)
+        t_gryffindor = regression_wrapper(matrix_y, norm_x, 2)
+        t_hufflepuff = regression_wrapper(matrix_y, norm_x, 3)
 
     return t_ravenclaw, t_slytherin, t_gryffindor, t_hufflepuff
 
@@ -59,7 +68,8 @@ def generate_predictions(
 def cross_validation(
     X: ndarray,
     y: ndarray,
-    k: int = 5
+    k: int = 5,
+    is_multiprocess: bool = False,
 ) -> float:
     """
     Perform k-fold cross-validation for a multinomial logistic regression model.
@@ -79,19 +89,35 @@ def cross_validation(
     X_shuffled = X[indices]
     y_shuffled = y[indices]
     accuracies = []
-    for i in range(k):
-        # Split into training and validation sets
-        val_start = i * fold_size
-        val_end = (i + 1) * fold_size
+    threads = []
+
+    def verif(iter_number):
+        val_start = iter_number * fold_size
+        val_end = (iter_number + 1) * fold_size
         X_val = X_shuffled[val_start:val_end]
         y_val = y_shuffled[val_start:val_end]
         X_train = concatenate([X_shuffled[:val_start], X_shuffled[val_end:]])
         y_train = concatenate([y_shuffled[:val_start], y_shuffled[val_end:]])
-        # Train multinomial logistic regression
-        weights = logreg_train(y_train, X_train)
+        weights = logreg_train(y_train, X_train, multi_process=True)
         y_pred = generate_predictions(X_val, weights)
         accuracy = mean(y_pred == y_val)
-        accuracies.append(accuracy)
+        return accuracy
+
+    @threaded
+    def thread_verif(iter_number, queue):
+        queue.put(verif(iter_number))
+
+    if not is_multiprocess:
+        with Manager() as manager:
+            q = manager.Queue()
+            for i in range(k):
+                threads.append(thread_verif(i, q))
+            for thread in threads:
+                thread.join()
+                accuracies.append(q.get())
+    else:
+        for i in range(k):
+            accuracies.append(verif(i))
     return mean(accuracies)
 
 class FeaturesSelector:
@@ -112,7 +138,7 @@ class FeaturesSelector:
         best_features = None
 
         if self.f_number == 1 and f_test.shape[1] == 1:
-            return cross_validation(f_test, self.matrix_y), f_test
+            return cross_validation(f_test, self.matrix_y, is_multiprocess=True), f_test
         for i in range(0, main_feature.shape[1]):
             if is_finished.get():
                 return best_score, best_features
@@ -129,7 +155,7 @@ class FeaturesSelector:
             elif i + 1 >= main_feature.shape[1]:
                 return best_score, best_features
 
-            actual_score = cross_validation(actual_features, self.matrix_y)
+            actual_score = cross_validation(actual_features, self.matrix_y, is_multiprocess=True)
             if actual_score > best_score:
                 if actual_score >= self.acc_tol:
                     is_finished.set(True)
@@ -177,25 +203,3 @@ class FeaturesSelector:
                 best_score = score
                 best_features = features
         return best_features
-
-# def test_features(
-#     matrix_x: ndarray,
-#     f_number: int,
-#     current_number: int,
-#     base_feature: ndarray,
-#     *args
-# ):
-#     if current_number < f_number:
-#         return test_features(matrix_x, f_number, base_feature, *args, )
-#
-#     return None
-#
-#     # test_x = matrix_x[:, 0].copy()
-#
-#
-# def features_selector(
-#     X: ndarray,
-#     y: ndarray,
-#     f_number: int = 3
-# ):
-#     test_features(X, f_number)

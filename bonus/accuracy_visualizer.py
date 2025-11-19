@@ -56,24 +56,16 @@ def hard_features(matrix_x, matrix_y, df):
          'Flying']
     ]
 
-    @threaded
-    def threaded_cv(cv_matrix_x, cv_matrix_y, cv_queue):
-        cv_queue.put(cross_validation(cv_matrix_x, cv_matrix_y))
+    for i, names in enumerate(features_list):
+        features_accuracy.append(cross_validation(df[names].values, matrix_y))
 
-    with Manager() as manager:
-        q = manager.Queue()
-        for i, names in enumerate(features_list):
-            threads.append(threaded_cv(df[names].values, matrix_y, q))
-        for thread in threads:
-            thread.join()
-            features_accuracy.append(q.get())
 
     bar(
         x=range(len(features_accuracy)),
         height=array(features_accuracy),
         tick_label=[f"{i+1}" for i in range(len(features_accuracy))]
     )
-    show()
+    # show()
 
 
 def main():
