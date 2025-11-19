@@ -140,30 +140,3 @@ def predict(
         ndarray: A matrix of boolean
     """
     return predict_proba(matrix_x, matrix_t) >= threshold
-
-# pip install scikit-learn
-
-# from sklearn.datasets import load_breast_cancer
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.model_selection import train_test_split
-# from sklearn.metrics import accuracy_score
-#
-# x, y = load_breast_cancer(return_X_y=True)
-# x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-#
-# scaler = StandardScaler()
-#
-# x_train_scaled = scaler.fit_transform(x_train)
-# x_test_scaled = scaler.transform(x_test)
-#
-# y_train.resize((y_train.shape[0], 1))
-# thetas = gradient_descent(x_train_scaled, y_train)
-#
-# y_pred_train = predict(x_train_scaled, thetas)
-# y_pred_test = predict(x_test_scaled, thetas)
-#
-# train_acc = accuracy_score(y_train, y_pred_train)
-# test_acc = accuracy_score(y_test, y_pred_test)
-#
-# print(train_acc)
-# print(test_acc)
