@@ -111,7 +111,10 @@ class FeaturesSelector:
         best_score = float("-inf")
         best_features = None
 
+        if self.f_number == 1 and f_test.shape[1] == 1:
+            return cross_validation(f_test, self.matrix_y), f_test
         for i in range(0, main_feature.shape[1]):
+            print(f"Recur {f_test.shape[1]} iter {i}")
             if is_finished.get():
                 return best_score, best_features
             if f_test is None:
@@ -124,6 +127,8 @@ class FeaturesSelector:
                     best_score = tmp_score
                     best_features = tmp_features
                 continue
+            elif i + 1 >= main_feature.shape[1]:
+                return best_score, best_features
 
             actual_score = cross_validation(actual_features, self.matrix_y)
             if actual_score > best_score:
@@ -145,13 +150,16 @@ class FeaturesSelector:
         best_score = float("-inf")
         best_features = None
 
+        if self.f_number == self.matrix_X.shape[1]:
+            return self.matrix_X.copy()
+
         with Manager() as manager:
             q = manager.Queue()
             finished = manager.Value('B', False)
 
             for i in range(0, thread_iter):
                 for j in range(cpu_count()):
-                    if (i * thread_iter) + j > self.matrix_X.shape[1] - 1:
+                    if (i * thread_iter) + j > self.matrix_X.shape[1] - self.f_number:
                         break
                     threads.append(
                         test_features_wrapper(
