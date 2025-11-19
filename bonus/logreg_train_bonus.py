@@ -57,7 +57,7 @@ def main():
         matrix_y.resize((matrix_y.shape[0], 1))
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
-        features_select = FeaturesSelector(matrix_x, matrix_y, 4, 0.98)
+        features_select = FeaturesSelector(matrix_x, matrix_y, 13, 0.98)
         matrix_x = features_select.find_best_features()
         print(features_name(matrix_x, df.select_dtypes(include="number")))
 

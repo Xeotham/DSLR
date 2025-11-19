@@ -114,7 +114,6 @@ class FeaturesSelector:
         if self.f_number == 1 and f_test.shape[1] == 1:
             return cross_validation(f_test, self.matrix_y), f_test
         for i in range(0, main_feature.shape[1]):
-            print(f"Recur {f_test.shape[1]} iter {i}")
             if is_finished.get():
                 return best_score, best_features
             if f_test is None:
