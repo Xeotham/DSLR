@@ -2,6 +2,7 @@
 from sys import argv, path
 path.append("..")
 path.append(".")
+
 from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError, ParserError

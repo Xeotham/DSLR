@@ -3,6 +3,7 @@ from sys import path, argv
 path.append("..")
 path.append(".")
 path.append("../visualization")
+
 from numpy.ma.extras import hstack
 from numpy import ndarray, array
 from pandas import read_csv, DataFrame
