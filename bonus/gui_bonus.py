@@ -48,8 +48,9 @@ def execute_script(path: str, args: list[str] | None = None):
     absolute_path += path
 
     command = [str(python_interpreter), str(absolute_path)]
-    for arg in args:
-        command.append(str(arg))
+    if args:
+        for arg in args:
+            command.append(str(arg))
     run(command)
 
 

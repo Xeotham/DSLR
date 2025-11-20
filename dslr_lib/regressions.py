@@ -1,4 +1,6 @@
 from numpy import ndarray, exp, c_, ones, zeros, empty_like
+from pandas import DataFrame
+from pandas.core.dtypes.common import is_numeric_dtype
 from numpy.linalg import norm
 
 houses_colors = {
@@ -21,6 +23,44 @@ id_houses = {
     2: "Slytherin",
     3: "Hufflepuff",
 }
+
+def prepare_dataset(
+    df: DataFrame,
+    fill: bool = False,
+    features: list = None,
+) -> tuple[ndarray, ndarray]:
+    """
+    Prepares the dataset for logistic regression by handling missing values and extracting features and labels.
+    Only the "Herbology" and "Defense Against the Dark Arts" features are selected for this analysis.
+
+    Args:
+        df (DataFrame): Input DataFrame containing the dataset.
+        fill (bool, optional): If True, fills missing values with the mean of their column.
+                              If False, drops rows with missing values. Defaults to False.
+
+    Returns:
+        tuple[ndarray, ndarray]: A tuple containing the target labels (matrix_y) and feature matrix (matrix_x).
+    """
+    if fill:
+        # Fill missing values with the mean of their column
+        for i in range(0, len(df.columns)):
+            if not is_numeric_dtype(df[df.columns[i]]):
+                continue
+            df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
+    else:
+        # Drop rows with missing values
+        df.dropna(inplace=True)
+
+    # Extract target labels
+    matrix_y = df[df.columns[0]]
+    if "Hogwarts House" in df.columns:
+        matrix_y = df["Hogwarts House"].map(houses_id)
+
+    # Select only the "Herbology" and "Defense Against the Dark Arts" features
+    matrix_x = df.select_dtypes(include="number")
+    if features:
+        matrix_x = matrix_x[features]
+    return matrix_y.values, matrix_x.values
 
 def sigmoid(
     z: ndarray

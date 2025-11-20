@@ -14,37 +14,6 @@ from dslr_lib.regressions import gradient_descent, predict_proba, houses_id
 from dslr_lib.maths import normalize
 from dslr_lib.threads_bonus import threaded
 
-def prepare_dataset(
-    df: DataFrame,
-    fill: bool = False
-) -> Tuple[ndarray, ndarray]:
-    """
-    Prepares the dataset for machine learning by handling missing values and extracting features and labels.
-
-    Args:
-        df (DataFrame): Input DataFrame containing the dataset.
-        fill (bool, optional): If True, fills missing values with the mean of their column. If False, drops rows with missing values. Defaults to False.
-
-    Returns:
-        Tuple[ndarray, ndarray]: A tuple containing the target labels (matrix_y) and feature matrix (matrix_x).
-    """
-    if fill:
-        # Fill missing values with the mean of their column
-        for i in range(0, len(df.columns)):
-            if not is_numeric_dtype(df[df.columns[i]]):
-                continue
-            df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
-    else:
-        # Drop rows with missing values
-        df.dropna(inplace=True)
-
-    # Extract target labels and features
-    matrix_y = df[df.columns[0]]
-    if "Hogwarts House" in df.columns:
-        matrix_y = df["Hogwarts House"].map(houses_id)
-    matrix_x = df.select_dtypes(include="number")
-    return matrix_y.values, matrix_x.values
-
 def regression_wrapper(
     matrix_y: ndarray,
     matrix_x: ndarray,

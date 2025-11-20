@@ -10,7 +10,7 @@ from dslr_lib.maths import normalize
 from dslr_lib.regressions import predict_proba, houses_id, id_houses, houses_colors
 from regression.logreg_train import prepare_dataset
 
-def load_parameters() -> tuple[ndarray, ndarray, ndarray, ndarray]:
+def load_parameters() -> tuple[ndarray, ndarray, ndarray, ndarray, list]:
     """
     Loads the trained model parameters (weights) for each Hogwarts house from a CSV file.
 
@@ -20,30 +20,33 @@ def load_parameters() -> tuple[ndarray, ndarray, ndarray, ndarray]:
             (ravenclaw_weights, slytherin_weights, gryffindor_weights, hufflepuff_weights).
     """
     df = read_csv("../datasets/weights.csv")
+    features = read_csv("../datasets/features.csv", header=None).values.flatten().tolist()
     return (
         array([df["ravenclaw"].values]).T,
         array([df["slytherin"].values]).T,
         array([df["gryffindor"].values]).T,
         array([df["hufflepuff"].values]).T,
+        features
     )
 
-def prepare_predictions(test_path: str) -> ndarray:
+def prepare_predictions(test_path: str, features: list) -> ndarray:
     """
     Prepares the test dataset for prediction by normalizing it using the training dataset statistics.
 
     Args:
         test_path (str): Path to the test dataset CSV file.
+        features (list): List of feature names.
 
     Returns:
         ndarray: Normalized feature matrix for the test dataset.
     """
     # Load and prepare the test dataset
     test_df: DataFrame = read_csv(test_path, header=0).drop("Index", axis=1)
-    _, test_x = prepare_dataset(test_df, fill=True)
+    _, test_x = prepare_dataset(test_df, fill=True, features=features)
 
     # Load and prepare the training dataset for normalization statistics
     train_df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
-    _, train_x = prepare_dataset(train_df)
+    _, train_x = prepare_dataset(train_df, features=features)
 
     # Normalize the test dataset using the training dataset statistics
     return normalize(test_x, train_x)
@@ -102,11 +105,13 @@ def main() -> None:
         # Ensure the script is called with the correct number of arguments
         assert len(argv) == 2, "Please pass a test dataset CSV file as a parameter."
 
-        # Prepare the test dataset for prediction
-        test_x = prepare_predictions(argv[1])
-
         # Load the trained model parameters
         matrix_t = load_parameters()
+        features = matrix_t[-1]
+        matrix_t = matrix_t[:-1]
+
+        # Prepare the test dataset for prediction
+        test_x = prepare_predictions(argv[1], features)
 
         # Generate predictions for the test dataset
         houses = generate_predictions(test_x, matrix_t)

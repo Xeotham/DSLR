@@ -9,45 +9,8 @@ from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError, ParserError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.maths import normalize
-from dslr_lib.regressions import gradient_descent, predict_proba, houses_id
+from dslr_lib.regressions import gradient_descent, predict_proba, prepare_dataset
 from dslr_lib.errors import print_error
-
-def prepare_dataset(
-    df: DataFrame,
-    fill: bool = False
-) -> tuple[ndarray, ndarray]:
-    """
-    Prepares the dataset for logistic regression by handling missing values and extracting features and labels.
-    Only the "Herbology" and "Defense Against the Dark Arts" features are selected for this analysis.
-
-    Args:
-        df (DataFrame): Input DataFrame containing the dataset.
-        fill (bool, optional): If True, fills missing values with the mean of their column.
-                              If False, drops rows with missing values. Defaults to False.
-
-    Returns:
-        tuple[ndarray, ndarray]: A tuple containing the target labels (matrix_y) and feature matrix (matrix_x).
-    """
-    if fill:
-        # Fill missing values with the mean of their column
-        for i in range(0, len(df.columns)):
-            if not is_numeric_dtype(df[df.columns[i]]):
-                continue
-            df[df.columns[i]] = df[df.columns[i]].fillna(df[df.columns[i]].mean())
-    else:
-        # Drop rows with missing values
-        df.dropna(inplace=True)
-
-    # Extract target labels
-    matrix_y = df[df.columns[0]]
-    if "Hogwarts House" in df.columns:
-        matrix_y = df["Hogwarts House"].map(houses_id)
-
-    # Select only the "Herbology" and "Defense Against the Dark Arts" features
-    matrix_x = df.select_dtypes(include="number")
-    matrix_x = matrix_x[["Herbology", "Defense Against the Dark Arts"]]
-
-    return matrix_y.values, matrix_x.values
 
 def regression_wrapper(
     matrix_y: ndarray,
@@ -155,7 +118,7 @@ def main() -> None:
 
         # Load and prepare the dataset
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
-        matrix_y, matrix_x = prepare_dataset(df)
+        matrix_y, matrix_x = prepare_dataset(df, features=["Herbology", "Defense Against the Dark Arts"])
         matrix_y.resize((matrix_y.shape[0], 1))
 
         assert matrix_x.shape[0] != 0, "The dataset format isn't right."
@@ -163,6 +126,9 @@ def main() -> None:
         # Train the logistic regression model
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
+        features_csv = DataFrame(
+            data=array(["Herbology", "Defense Against the Dark Arts"]),
+        )
         # Save the model weights to a CSV file
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
@@ -171,11 +137,16 @@ def main() -> None:
         )
         project_path = str(__file__)
         project_path = project_path[:-len("/logreg_train.py")]
-        path = "../datasets/weights.csv"
-        if not path.startswith('/'):
-            path = "/" + path
-        path = project_path + path
-        thetas_csv.to_csv(path, index=False)
+        weights_path = "../datasets/weights.csv"
+        features_path = "../datasets/features.csv"
+        if not weights_path.startswith('/'):
+            weights_path = "/" + weights_path
+        if not features_path.startswith('/'):
+            features_path = "/" + features_path
+        weights_path = project_path + weights_path
+        features_path = project_path + features_path
+        thetas_csv.to_csv(weights_path, index=False)
+        features_csv.to_csv(features_path, index=False, header=False)
 
     except AssertionError as err:
         print_error(f"Error: {err}")
