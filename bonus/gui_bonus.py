@@ -43,15 +43,14 @@ COURSES = [
 ]
 
 def execute_script(path: str, args: list[str] | None = None):
+    python_interpreter = str(sys.executable)
     absolute_path = __file__.replace("/bonus/./gui_bonus.py", "")
     absolute_path += path
-    command = str(absolute_path)
-    if args:
-        for arg in args:
-            command += " | " + str(arg)
-        run(command.split(" | "))
-    else:
-        run(command)
+
+    command = [str(python_interpreter), str(absolute_path)]
+    for arg in args:
+        command.append(str(arg))
+    run(command)
 
 
 def create_exit_button():
@@ -99,11 +98,12 @@ def create_tabs():
     analysis_frame = tabview.add("Analysis")
     visuals_frame = tabview.add("Visuals")
     logreg_frame = tabview.add("Logreg")
-    # bonuses_frame = tabview.add("Bonuses")
+    bonuses_frame = tabview.add("Bonus")
     tabview.set("Analysis")
     create_analysis_tab(tabview)
     create_visuals_tab(tabview)
     create_logreg_tab(tabview)
+    create_bonus_tab(tabview)
 
 
 def create_analysis_tab(tabs: CTkTabview):
@@ -293,8 +293,6 @@ def create_logreg_tab(tabs: CTkTabview):
         return callback
 
 
-
-
     def add_top_button(text):
         tab_button_builder = ButtonBuilder(button_row)
         tab_button_builder.new()                        \
@@ -312,6 +310,54 @@ def create_logreg_tab(tabs: CTkTabview):
     add_top_button("Train")
     add_top_button("Predict")
 
+
+def create_bonus_tab(tabs: CTkTabview):
+    wrapper = CTkFrame(tabs.tab("Bonus"), fg_color="transparent")
+    wrapper.pack(fill="x", pady=20)
+
+    button_row = CTkFrame(wrapper, fg_color="transparent")
+    button_row.pack(pady=10)
+
+    def bonus_logreg_train():
+        print("I did not crash, just really slow")
+        dataset = "../datasets/dataset_train.csv"
+        script = "/bonus/logreg_train_bonus.py"
+        execute_script(script, [dataset])
+
+
+    def logreg_predict():
+        dataset = "../datasets/dataset_test.csv"
+        script = "/regression/logreg_predict.py"
+        execute_script(script, [dataset])
+
+
+    def generate_bonus_callback(script: str):
+        script = "/bonus/" + script + ".py"
+        @threaded
+        def callback():
+            execute_script(script)
+
+
+        return callback
+
+    def add_top_button(text, callback):
+        tab_button_builder = ButtonBuilder(button_row)
+        tab_button_builder.new()                        \
+            .text(text)                                 \
+            .size(110, 35)                              \
+            .fg_color("#a1a61f")                        \
+            .hover(True, "#6d7014")                     \
+            .corner_radius(5)                           \
+            .command(callback)                          \
+            .pack(
+                side="left",
+                padx=10
+            )
+
+    add_top_button("Bonus Train", bonus_logreg_train)
+    add_top_button("Predict", logreg_predict)
+    add_top_button("Accuracy", generate_bonus_callback("accuracy_visualizer"))
+    add_top_button("Boundaries", generate_bonus_callback("boundaries_line_visualizer"))
 
 
 def init_app():
