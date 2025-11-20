@@ -6,11 +6,9 @@ from numpy import array, ndarray
 from dslr_lib.opti_bonus import FeaturesSelector, cross_validation
 from dslr_lib.regressions import prepare_dataset
 from dslr_lib.errors import print_error
-from dslr_lib.threads_bonus import threaded
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
-from matplotlib.pyplot import bar, show, hist
-from multiprocessing import Manager, Pool
+from matplotlib.pyplot import bar, show
 
 
 def find_opti(matrix_x: ndarray, matrix_y: ndarray) -> None:

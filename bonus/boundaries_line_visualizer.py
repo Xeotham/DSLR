@@ -10,9 +10,8 @@ from pandas.errors import EmptyDataError
 from dslr_lib.maths import normalize
 from dslr_lib.errors import print_error
 from dslr_lib.opti_bonus import logreg_train
-from dslr_lib.regressions import houses_colors, id_houses
+from dslr_lib.regressions import houses_colors, id_houses, prepare_dataset
 from matplotlib.pyplot import plot, scatter, show
-from regression.logreg_train import prepare_dataset
 
 def plot_boundaries(
     matrix_y: ndarray,
@@ -74,7 +73,7 @@ def main() -> None:
         df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
 
         # Prepare the feature and target matrices
-        matrix_y, matrix_x = prepare_dataset(df)
+        matrix_y, matrix_x = prepare_dataset(df, features=["Herbology", "Defense Against the Dark Arts"])
         matrix_y.resize((matrix_y.shape[0], 1))
 
         # Train the logistic regression model
