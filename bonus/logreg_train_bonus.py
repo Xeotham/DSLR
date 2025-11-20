@@ -3,13 +3,12 @@ from sys import argv, path
 path.append("..")
 path.append(".")
 path.append("../visualization")
-from numpy import ndarray, vectorize, array, zeros, argmax
+from numpy import ndarray, array
 from pandas import read_csv, DataFrame
-from pandas.errors import EmptyDataError
+from pandas.errors import EmptyDataError, ParserError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.errors import print_error
 from dslr_lib.opti_bonus import cross_validation, logreg_train, FeaturesSelector, prepare_dataset
-from dslr_lib.regressions import houses_id, id_houses, houses_colors
 
 def features_name(features: ndarray, df: DataFrame) -> list:
     """
@@ -74,6 +73,7 @@ def main():
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
         matrix_y, matrix_x = prepare_dataset(df)
         matrix_y.resize((matrix_y.shape[0], 1))
+        assert matrix_x.shape[0] != 0, "The dataset format isn't right."
 
         # Select the best features
         features_select = FeaturesSelector(matrix_x, matrix_y, 4, 0.98)
@@ -100,14 +100,16 @@ def main():
         path = project_path + path
         thetas_csv.to_csv(path, index=False)
 
-    except AssertionError as e:
-        print_error(str(e))
+    except AssertionError as err:
+        print_error(f"Error: {err}")
     except FileNotFoundError:
         print_error("FileNotFoundError: Provided file not found.")
     except PermissionError:
         print_error("PermissionError: Permission denied on provided file.")
     except EmptyDataError:
         print_error("EmptyDataError: Provided dataset is empty.")
+    except ParserError:
+        print_error("ParserError: Impossible to parse the dataset.")
     except KeyError as err:
         print_error(f"KeyError: {err} is not in the required file.")
     except KeyboardInterrupt:

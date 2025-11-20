@@ -6,7 +6,7 @@ path.append("../visualization")
 
 from numpy import ndarray, array, zeros, argmax
 from pandas import read_csv, DataFrame
-from pandas.errors import EmptyDataError
+from pandas.errors import EmptyDataError, ParserError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.maths import normalize
 from dslr_lib.regressions import gradient_descent, predict_proba, houses_id
@@ -158,6 +158,8 @@ def main() -> None:
         matrix_y, matrix_x = prepare_dataset(df)
         matrix_y.resize((matrix_y.shape[0], 1))
 
+        assert matrix_x.shape[0] != 0, "The dataset format isn't right."
+
         # Train the logistic regression model
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
@@ -175,14 +177,16 @@ def main() -> None:
         path = project_path + path
         thetas_csv.to_csv(path, index=False)
 
-    except AssertionError as e:
-        print_error(str(e))
+    except AssertionError as err:
+        print_error(f"Error: {err}")
     except FileNotFoundError:
         print_error("FileNotFoundError: Provided file not found.")
     except PermissionError:
         print_error("PermissionError: Permission denied on provided file.")
     except EmptyDataError:
         print_error("EmptyDataError: Provided dataset is empty.")
+    except ParserError:
+            print_error("ParserError: Impossible to parse the dataset.")
     except KeyError as err:
         print_error(f"KeyError: {err} is not in the required file.")
     except KeyboardInterrupt:
