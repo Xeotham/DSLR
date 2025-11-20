@@ -320,7 +320,7 @@ def create_bonus_tab(tabs: CTkTabview):
     button_row.pack(pady=10)
 
     def bonus_logreg_train():
-        print("I did not crash, just really slow")
+        print("I did not crash, just really slow :3")
         dataset = "../datasets/dataset_train.csv"
         script = "/bonus/logreg_train_bonus.py"
         execute_script(script, [dataset])

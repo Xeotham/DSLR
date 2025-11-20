@@ -1,11 +1,9 @@
 #!../.venv/bin/python
 from sys import argv, path
-
-from matplotlib.font_manager import weight_dict
-
 path.append("..")
 path.append(".")
 path.append("../visualization")
+
 from numpy import ndarray, array
 from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError, ParserError
@@ -88,7 +86,7 @@ def main():
         # print(f"Accuracy: {p_score}")
 
         # Train the model with the selected features
-        thetas_weights = logreg_train(matrix_y, matrix_x, multi_process=True)
+        thetas_weights = logreg_train(matrix_y, matrix_x)
 
         features_csv = DataFrame(
             data=array(features_name(matrix_x, df)),

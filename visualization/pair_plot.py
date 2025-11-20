@@ -1,13 +1,12 @@
 #!../.venv/bin/python
-import sys
-sys.path.insert(1, "..")
-sys.path.insert(2, ".")
-sys.path.insert(3, "./visualization")
+from sys import argv, path
+path.append("..")
+path.append(".")
+path.append("./visualization")
 
 from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
 from matplotlib.pyplot import subplots, show
-from sys import argv
 from histogram import generate_histogram
 from scatter_plot import generate_scatter
 from dslr_lib.errors import print_error
