@@ -4,7 +4,7 @@ path.append("..")
 path.append(".")
 from numpy import ndarray, vectorize, array, zeros, argmax
 from pandas import read_csv, DataFrame
-from pandas.errors import EmptyDataError
+from pandas.errors import EmptyDataError, ParserError
 from dslr_lib.errors import print_error
 from dslr_lib.maths import normalize
 from dslr_lib.regressions import predict_proba, houses_id, id_houses, houses_colors
@@ -140,6 +140,8 @@ def main() -> None:
         print_error("PermissionError: Permission denied on provided file.")
     except EmptyDataError:
         print_error("EmptyDataError: Provided dataset is empty.")
+    except ParserError:
+        print_error("ParserError: Impossible to parse the dataset.")
     except KeyError as err:
         print_error(f"KeyError: {err} is not in the required file.")
     except KeyboardInterrupt:
