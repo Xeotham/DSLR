@@ -3,7 +3,8 @@ from sys import path
 path.append("..")
 path.append(".")
 from numpy import array, ndarray
-from dslr_lib.opti_bonus import FeaturesSelector, cross_validation, prepare_dataset
+from dslr_lib.opti_bonus import FeaturesSelector, cross_validation
+from dslr_lib.regressions import prepare_dataset
 from dslr_lib.errors import print_error
 from dslr_lib.threads_bonus import threaded
 from pandas import DataFrame, read_csv
