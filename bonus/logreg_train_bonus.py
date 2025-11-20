@@ -80,8 +80,8 @@ def main():
         matrix_x = features_select.find_best_features()
 
         # Evaluate the model using cross-validation
-        p_score = cross_validation(matrix_x, matrix_y)
-        print(f"Accuracy: {p_score}")
+        # p_score = cross_validation(matrix_x, matrix_y)
+        # print(f"Accuracy: {p_score}")
 
         # Train the model with the selected features
         thetas_weights = logreg_train(matrix_x, matrix_y)

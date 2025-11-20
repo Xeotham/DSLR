@@ -21,7 +21,7 @@ def describe(df: DataFrame) -> DataFrame:
     describe_df = DataFrame(describe_arr).rename(index={i: name for i, name in enumerate(oper_names)},
                                                  columns={i:name for i, name in enumerate(df.keys())})
     print(describe_df)
-    print(df.describe())
+    # print(df.describe())
     return describe_df, df.describe()
 
 
