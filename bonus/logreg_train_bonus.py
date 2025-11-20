@@ -1,5 +1,8 @@
 #!../.venv/bin/python
 from sys import argv, path
+
+from matplotlib.font_manager import weight_dict
+
 path.append("..")
 path.append(".")
 path.append("../visualization")
@@ -8,7 +11,8 @@ from pandas import read_csv, DataFrame
 from pandas.errors import EmptyDataError, ParserError
 from pandas.api.types import is_numeric_dtype
 from dslr_lib.errors import print_error
-from dslr_lib.opti_bonus import cross_validation, logreg_train, FeaturesSelector, prepare_dataset
+from dslr_lib.opti_bonus import cross_validation, logreg_train, FeaturesSelector
+from dslr_lib.regressions import prepare_dataset
 
 def features_name(features: ndarray, df: DataFrame) -> list:
     """
@@ -84,8 +88,11 @@ def main():
         # print(f"Accuracy: {p_score}")
 
         # Train the model with the selected features
-        thetas_weights = logreg_train(matrix_x, matrix_y)
+        thetas_weights = logreg_train(matrix_y, matrix_x, multi_process=True)
 
+        features_csv = DataFrame(
+            data=array(features_name(matrix_x, df)),
+        )
         # Save the model weights to a CSV file
         thetas_csv = DataFrame(
             data=array(thetas_weights).T,
@@ -94,11 +101,16 @@ def main():
         )
         project_path = str(__file__)
         project_path = project_path[:-len("/logreg_train_bonus.py")]
-        path = "../datasets/weights.csv"
-        if not path.startswith('/'):
-            path = "/" + path
-        path = project_path + path
-        thetas_csv.to_csv(path, index=False)
+        weights_path = "../datasets/weights.csv"
+        features_path = "../datasets/features.csv"
+        if not weights_path.startswith('/'):
+            weights_path = "/" + weights_path
+        if not features_path.startswith('/'):
+            features_path = "/" + features_path
+        weights_path = project_path + weights_path
+        features_path = project_path + features_path
+        thetas_csv.to_csv(weights_path, index=False)
+        features_csv.to_csv(features_path, index=False, header=False)
 
     except AssertionError as err:
         print_error(f"Error: {err}")

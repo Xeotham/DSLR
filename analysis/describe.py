@@ -1,27 +1,67 @@
 #!../.venv/bin/python3
-import sys
-sys.path.insert(1, "..")
-sys.path.insert(2, ".")
-sys.path.insert(3, "./analysis")
+from sys import argv, path
+path.append("..")
+path.append(".")
+path.append("./analysis")
 
-from pandas import DataFrame, read_csv, set_option
+from pandas import DataFrame, read_csv
 from pandas.errors import EmptyDataError
-from numpy import ndarray, array, vstack
-from sys import argv
+from numpy import array, vstack
 from dslr_lib.errors import print_error
 from dslr_lib.maths import total_count, count, mean, var, std, min, max, Q1, Q2, Q3, nan_count
 
-def describe(df: DataFrame) -> DataFrame:
+def describe(df: DataFrame):
+    """
+    Computes and returns descriptive statistics for each column in the input DataFrame.
+    The statistics include total count, count (non-NaN), mean, variance, standard deviation,
+    minimum, maximum, quartiles (25%, 50%, 75%), and NaN count.
+
+    Args:
+        df (DataFrame): Input DataFrame for which to compute descriptive statistics.
+
+    Returns:
+        Tuple[DataFrame, DataFrame]:
+            - A custom DataFrame with detailed descriptive statistics.
+            - The standard pandas `describe()` output for comparison.
+
+    Notes:
+        - Uses custom functions `count`, `mean`, `var`, `std`, `min`, `max`, `Q1`, `Q2`, `Q3`, and `nan_count`.
+        - The custom DataFrame includes additional statistics like total count and NaN count.
+    """
+    # List of statistical operations to apply
     oper_lst = [count, mean, var, std, min, max, Q1, Q2, Q3]
-    oper_names = ["Total count", "Count", "Mean", "Variance", "Std Dev", "Min", "Max", "25%", "50%", "75%", "NaN Count"]
+    # Names for the rows in the output DataFrame
+    oper_names = [
+        "Total count", "Count", "Mean", "Variance", "Std Dev",
+        "Min", "Max", "25%", "50%", "75%", "NaN Count"
+    ]
+
+    # Initialize the result array with the total count for each column
     describe_arr = array([[total_count(df[i]) for i in df.keys()]])
+
+    # Compute and stack each statistic for all columns
     for f in oper_lst:
-        describe_arr = vstack((describe_arr, array([[f(df[i].dropna().values) for i in df.keys()]])))
-    describe_arr = vstack((describe_arr, array([[nan_count(df[i].values) for i in df.keys()]])))
-    describe_df = DataFrame(describe_arr).rename(index={i: name for i, name in enumerate(oper_names)},
-                                                 columns={i:name for i, name in enumerate(df.keys())})
+        describe_arr = vstack((
+            describe_arr,
+            array([[f(df[i].dropna().values) for i in df.keys()]])
+        ))
+
+    # Add NaN count for each column
+    describe_arr = vstack((
+        describe_arr,
+        array([[nan_count(df[i].values) for i in df.keys()]])
+    ))
+
+    # Convert the result array to a DataFrame and rename rows and columns
+    describe_df = DataFrame(describe_arr).rename(
+        index={i: name for i, name in enumerate(oper_names)},
+        columns={i: name for i, name in enumerate(df.keys())}
+    )
+
+    # Print the custom descriptive statistics DataFrame
     print(describe_df)
-    # print(df.describe())
+
+    # Return both the custom and standard pandas describe DataFrames
     return describe_df, df.describe()
 
 
