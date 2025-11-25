@@ -73,12 +73,12 @@ def main():
 
         # Load and prepare the dataset
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
-        matrix_y, matrix_x = prepare_dataset(df)
+        matrix_y, matrix_x = prepare_dataset(df, fill=True)
         matrix_y.resize((matrix_y.shape[0], 1))
         assert matrix_x.shape[0] != 0, "The dataset format isn't right."
 
         # Select the best features
-        features_select = FeaturesSelector(matrix_x, matrix_y, 4, 0.98)
+        features_select = FeaturesSelector(matrix_x, matrix_y, 2, 0.98)
         matrix_x = features_select.find_best_features()
 
         # Evaluate the model using cross-validation

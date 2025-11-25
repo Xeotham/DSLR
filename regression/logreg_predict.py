@@ -114,6 +114,9 @@ def main() -> None:
         # Prepare the test dataset for prediction
         test_x = prepare_predictions(argv[1], features)
 
+        train_df: DataFrame = read_csv("../datasets/dataset_train.csv", header=0).drop("Index", axis=1)
+        train_y, train_x = prepare_dataset(train_df, features=features)
+
         # Generate predictions for the test dataset
         houses = generate_predictions(test_x, matrix_t)
 

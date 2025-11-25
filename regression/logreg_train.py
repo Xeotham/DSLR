@@ -34,7 +34,7 @@ def regression_wrapper(
     train_y[matrix_y == houses] = 1
 
     # Train the logistic regression model
-    weights = gradient_descent(matrix_x, train_y, max_iter=1000, alpha=0.01)
+    weights = gradient_descent(matrix_x, train_y, max_iter=10000, alpha=0.005, tol=0)
     return weights.flatten()
 
 def logreg_train(
@@ -118,7 +118,7 @@ def main() -> None:
 
         # Load and prepare the dataset
         df: DataFrame = read_csv(argv[1], header=0).drop("Index", axis=1)
-        matrix_y, matrix_x = prepare_dataset(df, features=["Herbology", "Defense Against the Dark Arts"])
+        matrix_y, matrix_x = prepare_dataset(df, features=["Herbology", "Defense Against the Dark Arts", "Divination", "History of Magic"])
         matrix_y.resize((matrix_y.shape[0], 1))
 
         assert matrix_x.shape[0] != 0, "The dataset format isn't right."
@@ -127,7 +127,7 @@ def main() -> None:
         thetas_weights = logreg_train(matrix_y, matrix_x)
 
         features_csv = DataFrame(
-            data=array(["Herbology", "Defense Against the Dark Arts"]),
+            data=array(["Herbology", "Defense Against the Dark Arts", "Divination", "History of Magic"]),
         )
         # Save the model weights to a CSV file
         thetas_csv = DataFrame(
